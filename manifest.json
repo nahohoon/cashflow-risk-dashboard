@@ -1,0 +1,22 @@
+{
+  "name": "현금흐름 위험관리판",
+  "short_name": "CASHFLOW",
+  "description": "대표용 현금흐름 위험 가시화 시스템 — 미수 위험 감지 · 회수 우선순위 · 모바일 실사용",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#060f1f",
+  "theme_color": "#0a1628",
+  "lang": "ko-KR",
+  "dir": "ltr",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

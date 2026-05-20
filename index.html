@@ -1,0 +1,3931 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a1628" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="CASHFLOW" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <title>현금흐름 위험관리판</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    :root {
+      --bg-0: #060f1f;
+      --bg-1: #0a1628;
+      --bg-2: #112038;
+      --card: rgba(20, 40, 71, 0.85);
+      --card-solid: #142847;
+      --card-hi: #1a3158;
+      --border: rgba(148, 163, 184, 0.12);
+      --border-strong: rgba(148, 163, 184, 0.22);
+
+      --text: #e6edf7;
+      --text-mute: #8aa0c0;
+      --text-dim: #5e7398;
+
+      --accent: #3b82f6;
+      --accent-2: #06b6d4;
+
+      --risk-critical: #ef4444;
+      --risk-high: #f97316;
+      --risk-mid: #eab308;
+      --risk-watch: #06b6d4;
+      --risk-safe: #10b981;
+
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+
+      --shadow-card: 0 6px 20px rgba(0, 0, 0, 0.35);
+      --shadow-pop: 0 18px 40px rgba(0, 0, 0, 0.5);
+
+      --tabbar-h: 64px;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-0);
+      color: var(--text);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      min-height: 100vh;
+      overscroll-behavior-y: none;
+      -webkit-overflow-scrolling: touch;
+      text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+    button, input, select, textarea { font-family: inherit; }
+    button, .tab, .icon-btn, .risk-row, .item, .search-results .item, .detail-actions .a, .kpi[data-kpi-nav] { touch-action: manipulation; }
+    input { font-size: 16px; }  /* iOS auto-zoom 방지 */
+    @supports (-webkit-touch-callout: none) {
+      input:not(:focus) { font-size: 14px; }
+    }
+
+    body {
+      background:
+        radial-gradient(1200px 600px at 50% -10%, #1b3666 0%, rgba(27, 54, 102, 0) 60%),
+        radial-gradient(800px 500px at 100% 110%, #0f2a4a 0%, rgba(15, 42, 74, 0) 60%),
+        linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
+      background-attachment: fixed;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      padding-top: calc(14px + env(safe-area-inset-top));
+      padding-bottom: calc(var(--tabbar-h) + 24px + env(safe-area-inset-bottom));
+      min-height: 100vh;
+    }
+    body.detail-open .app {
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    }
+    body.detail-open .tabbar { display: none !important; }
+
+    /* ───────── App header (2단) ───────── */
+    .app-top {
+      margin-bottom: 14px;
+    }
+    .header-row-status {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      min-height: 44px;
+    }
+    .header-row-status .header-status {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+    .app-title {
+      margin: 10px 0 0;
+      padding: 0;
+      font-size: clamp(28px, 7.2vw, 36px);
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      line-height: 1.18;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+      color: var(--text);
+    }
+    .app-sub {
+      margin: 6px 0 0;
+      font-size: 13px;
+      color: var(--text-mute);
+      line-height: 1.45;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+    .icon-btn {
+      width: 44px; height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      display: grid; place-items: center;
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+    }
+    .icon-btn:active { background: rgba(255,255,255,0.08); transform: scale(0.96); }
+    .icon-btn svg { display: block; }
+    .icon-btn.refreshing svg { animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .status-pill {
+      display: none;
+      align-items: center; gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px; font-weight: 600;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .status-pill .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .status-pill.live { background: rgba(16, 185, 129, 0.12); color: var(--risk-safe); border-color: rgba(16, 185, 129, 0.3); }
+    .status-pill.live .dot { background: var(--risk-safe); animation: pulse 1.6s infinite; }
+    .status-pill.mock { background: rgba(148, 163, 184, 0.12); color: #a8b8d0; border-color: rgba(148, 163, 184, 0.3); }
+    .status-pill.mock .dot { background: #a8b8d0; }
+    .status-pill.fallback { background: rgba(249, 115, 22, 0.12); color: #ffb37a; border-color: rgba(249, 115, 22, 0.3); }
+    .status-pill.fallback .dot { background: var(--risk-high); animation: pulse 1.6s infinite; }
+    .status-pill.partial { background: rgba(234, 179, 8, 0.12); color: #ffe188; border-color: rgba(234, 179, 8, 0.3); }
+    .status-pill.partial .dot { background: var(--risk-mid); }
+    .status-pill.loading { background: rgba(59, 130, 246, 0.12); color: #93c5fd; border-color: rgba(59, 130, 246, 0.3); }
+    .status-pill.loading .dot { background: #93c5fd; animation: pulse 1.0s infinite; }
+    .status-pill.error { background: rgba(239, 68, 68, 0.12); color: #fda4a4; border-color: rgba(239, 68, 68, 0.35); }
+    .status-pill.error .dot { background: #f87171; animation: pulse 1.6s infinite; }
+
+    body.ds-live .status-pill.live,
+    body.ds-partial .status-pill.live,
+    body.ds-mock .status-pill.mock,
+    body.ds-fallback .status-pill.fallback,
+    body.ds-error .status-pill.error { display: inline-flex; }
+    body.ds-partial .status-pill.partial { display: none !important; }
+    body.loading .status-pill { display: none; }
+    body.loading .status-pill.loading { display: inline-flex; }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+      70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* ───────── View 전환 ───────── */
+    .view { display: none; }
+    .view.active { display: block; }
+    .view[data-view="dashboard"].active {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ───────── Hero ───────── */
+    .hero {
+      background: linear-gradient(135deg, #0f2a55 0%, #11355f 60%, #0b2243 100%);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      background:
+        radial-gradient(220px 120px at 90% 0%, rgba(59, 130, 246, 0.35), transparent 70%),
+        radial-gradient(180px 120px at 0% 100%, rgba(6, 182, 212, 0.25), transparent 70%);
+      pointer-events: none;
+    }
+    .hero .label {
+      font-size: 12px; color: #b9ccea; letter-spacing: -0.1px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero .label .badge {
+      background: rgba(239, 68, 68, 0.18);
+      color: #fda4a4;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      padding: 3px 8px; border-radius: 999px;
+      font-size: 10px; font-weight: 700;
+    }
+    .hero .value {
+      font-size: 34px; font-weight: 800;
+      letter-spacing: -0.6px;
+      margin-top: 6px;
+      font-feature-settings: "tnum";
+    }
+    .hero .value small {
+      font-size: 14px; color: var(--text-mute); font-weight: 600; margin-left: 4px;
+    }
+    .hero .row {
+      margin-top: 14px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .hero .row .mini {
+      background: rgba(8, 22, 44, 0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+    }
+    .hero .row .mini .k { font-size: 11px; color: var(--text-mute); }
+    .hero .row .mini .v {
+      font-size: 16px; font-weight: 700; margin-top: 4px;
+      font-feature-settings: "tnum";
+    }
+    .hero .row .mini .v.green { color: var(--risk-safe); }
+
+    /* ───────── Section title ───────── */
+    .section-title {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 12px 4px 10px;
+    }
+    .section-title h3 {
+      font-size: 14px; font-weight: 700; margin: 0;
+      letter-spacing: -0.2px;
+    }
+    .section-title .more {
+      font-size: 12px; color: var(--text-mute);
+    }
+    .section-title-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      max-width: 62%;
+    }
+    .btn-print-inline {
+      flex-shrink: 0;
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(59, 130, 246, 0.45);
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .btn-print-inline:active { filter: brightness(0.95); }
+    .view > .section-title:first-child { margin-top: 4px; }
+
+    /* ───────── KPI ───────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .kpi {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi[data-kpi-nav] {
+      cursor: pointer;
+      min-height: 132px;
+      padding-bottom: 28px;
+      -webkit-tap-highlight-color: rgba(255,255,255,0.06);
+    }
+    .kpi[data-kpi-nav]:active { background: rgba(255,255,255,0.08); }
+    .kpi .kpi-link {
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.1px;
+      pointer-events: none;
+    }
+    .kpi .icon {
+      width: 30px; height: 30px;
+      border-radius: 9px;
+      display: grid; place-items: center;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .kpi .label { font-size: 11px; color: var(--text-mute); }
+    .kpi .value {
+      font-size: 22px; font-weight: 800; margin-top: 4px;
+      font-feature-settings: "tnum";
+      letter-spacing: -0.4px;
+    }
+    .kpi .value small {
+      font-size: 12px; color: var(--text-mute); font-weight: 600;
+    }
+    .kpi .delta {
+      margin-top: 6px;
+      font-size: 11px; color: var(--text-dim);
+    }
+    .kpi.red .icon { background: rgba(239, 68, 68, 0.18); color: var(--risk-critical); }
+    .kpi.org .icon { background: rgba(249, 115, 22, 0.18); color: var(--risk-high); }
+    .kpi.cy  .icon { background: rgba(6, 182, 212, 0.18); color: var(--risk-watch); }
+    .kpi.gr  .icon { background: rgba(16, 185, 129, 0.18); color: var(--risk-safe); }
+    .kpi.red .value { color: #ff8a8a; }
+    .kpi.org .value { color: #ffb37a; }
+
+    /* ───────── Card ───────── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-card);
+    }
+    .card + .card { margin-top: 14px; }
+    .card .card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 2px 4px 10px;
+    }
+    .card .card-head h4 { font-size: 14px; font-weight: 700; margin: 0; }
+    .card .card-head .hint { font-size: 11px; color: var(--text-mute); }
+    .group-label {
+      display: flex; align-items: center; gap: 8px;
+      margin: 14px 4px 8px;
+      font-size: 11px; font-weight: 700; color: var(--text-mute);
+      text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .group-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ───────── Risk list ───────── */
+    .risk-list { display: flex; flex-direction: column; }
+    .risk-row {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 4px;
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .risk-row:first-child { border-top: 0; }
+    .risk-row:active { background: rgba(255,255,255,0.04); }
+    .risk-row .rank {
+      width: 26px; height: 26px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 12px; font-weight: 800;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-mute);
+    }
+    .risk-row .rank.top1 { background: rgba(239,68,68,0.18); color: #ff8a8a; }
+    .risk-row .rank.top2 { background: rgba(249,115,22,0.18); color: #ffb37a; }
+    .risk-row .rank.top3 { background: rgba(234,179,8,0.18); color: #ffe28a; }
+    .risk-row .info .name {
+      font-size: 14px; font-weight: 700; letter-spacing: -0.2px;
+    }
+    .risk-row .info .meta {
+      margin-top: 3px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      font-size: 11px; color: var(--text-mute);
+    }
+    .risk-row .info .meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-dim); }
+    .risk-row .amount { text-align: right; }
+    .risk-row .amount .val {
+      font-size: 14px; font-weight: 800; letter-spacing: -0.3px;
+      font-feature-settings: "tnum";
+    }
+    .risk-row .amount .badge {
+      margin-top: 4px;
+      display: inline-block;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 999px;
+    }
+
+    .badge-critical { background: rgba(239,68,68,0.18); color: #fda4a4; border: 1px solid rgba(239,68,68,0.35); }
+    .badge-high     { background: rgba(249,115,22,0.18); color: #ffc191; border: 1px solid rgba(249,115,22,0.35); }
+    .badge-mid      { background: rgba(234,179,8,0.18); color: #ffe188; border: 1px solid rgba(234,179,8,0.35); }
+    .badge-watch    { background: rgba(6,182,212,0.18); color: #8ee0ee; border: 1px solid rgba(6,182,212,0.35); }
+    .badge-safe     { background: rgba(16,185,129,0.18); color: #86efac; border: 1px solid rgba(16,185,129,0.35); }
+
+    /* ───────── ERP 출처 badge ───────── */
+    .erp-badge {
+      display: inline-block;
+      font-size: 9px; font-weight: 700;
+      padding: 2px 6px; border-radius: 999px;
+      letter-spacing: 0.1px;
+      line-height: 1.5;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .erp-ky  { background: rgba(59,130,246,0.18); color: #93c5fd; border: 1px solid rgba(59,130,246,0.35); }
+    .erp-ec  { background: rgba(16,185,129,0.18); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.35); }
+    .erp-etc { background: rgba(148,163,184,0.12); color: #a8b8d0; border: 1px solid rgba(148,163,184,0.25); }
+
+    /* ───────── Search ───────── */
+    .search-wrap { position: relative; }
+    .search-wrap .ico {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: var(--text-mute);
+      display: grid; place-items: center;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 13px 14px 13px 40px;
+      background: rgba(8, 22, 44, 0.65);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+      font-family: inherit;
+    }
+    .search-wrap input::placeholder { color: var(--text-dim); }
+    .search-wrap input:focus {
+      border-color: var(--accent);
+      background: rgba(8, 22, 44, 0.85);
+    }
+    .search-results {
+      margin-top: 10px;
+      border-radius: 12px;
+      background: rgba(8, 22, 44, 0.4);
+      border: 1px solid var(--border);
+    }
+    .search-results .item {
+      padding: 11px 14px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .search-results .item:first-child { border-top: 0; }
+    .search-results .item:active { background: rgba(255,255,255,0.04); }
+
+    /* ───────── Detail ───────── */
+    .detail-card {
+      background: linear-gradient(160deg, #133359 0%, #0e2547 100%);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+    .detail-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(300px 160px at 100% 0%, rgba(59,130,246,0.25), transparent 60%);
+      pointer-events: none;
+    }
+    .detail-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      position: relative;
+    }
+    .detail-head .avatar {
+      width: 44px; height: 44px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #3b82f6, #06b6d4);
+      color: #fff; font-weight: 800; font-size: 16px;
+      display: grid; place-items: center;
+      box-shadow: 0 6px 18px rgba(59,130,246,0.35);
+      flex-shrink: 0;
+    }
+    .detail-head .name { flex: 1; min-width: 0; }
+    .detail-head .name .n {
+      font-size: 17px; font-weight: 800; letter-spacing: -0.3px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .detail-head .name .s {
+      font-size: 11px; color: var(--text-mute); margin-top: 3px;
+    }
+    .detail-balance {
+      margin-top: 14px;
+      padding: 14px;
+      background: rgba(6, 17, 36, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      position: relative;
+    }
+    .detail-balance .lbl {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 12px; color: var(--text-mute);
+    }
+    .detail-balance .val {
+      margin-top: 4px;
+      font-size: 28px; font-weight: 800; letter-spacing: -0.5px;
+      font-feature-settings: "tnum";
+    }
+    .detail-stats {
+      margin-top: 12px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .detail-stats .s {
+      padding: 10px 12px;
+      background: rgba(6, 17, 36, 0.45);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .detail-stats .s .k { font-size: 11px; color: var(--text-mute); }
+    .detail-stats .s .v { font-size: 14px; font-weight: 700; margin-top: 3px; font-feature-settings: "tnum"; }
+
+    .detail-alert {
+      margin-top: 12px;
+      padding: 10px 12px;
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 12px;
+      font-size: 12px;
+      color: #fda4a4;
+      position: relative;
+    }
+    .detail-alert.warn {
+      background: rgba(249, 115, 22, 0.1);
+      border-color: rgba(249, 115, 22, 0.3);
+      color: #ffb37a;
+    }
+    .detail-alert.ok {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #86efac;
+    }
+    .detail-alert .alert-ico { font-size: 14px; }
+
+    .detail-actions {
+      margin-top: 14px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+    }
+    .detail-actions .a {
+      padding: 10px 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      color: var(--text);
+      font-size: 12px; font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .detail-actions .a:active { background: rgba(255,255,255,0.1); }
+    .detail-actions .a.primary {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    /* ── 즉시관리 strip ── */
+    .urgent-strip {
+      margin-top: 12px;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: linear-gradient(90deg, rgba(239,68,68,0.22), rgba(249,115,22,0.18));
+      border: 1px solid rgba(239,68,68,0.4);
+      color: #ffd2d2;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: -0.1px;
+    }
+    .urgent-strip .urgent-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--risk-critical);
+      box-shadow: 0 0 0 0 rgba(239,68,68,0.6);
+      animation: pulseRed 1.4s infinite;
+    }
+    @keyframes pulseRed {
+      0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.55); }
+      70% { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+      100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    }
+
+    /* ── 위험도 progress ── */
+    .risk-progress {
+      margin-top: 12px;
+    }
+    .risk-progress .bar {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      overflow: hidden;
+      position: relative;
+    }
+    .risk-progress .fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #06b6d4 0%, #eab308 50%, #f97316 75%, #ef4444 100%);
+      transition: width 0.6s cubic-bezier(.22,.61,.36,1);
+    }
+    .risk-progress .marks {
+      margin-top: 6px;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      font-size: 9.5px; color: var(--text-dim);
+      letter-spacing: -0.1px;
+    }
+    .risk-progress .marks span { text-align: left; }
+    .risk-progress .marks span:nth-child(2) { text-align: center; }
+    .risk-progress .marks span:nth-child(3) { text-align: center; }
+    .risk-progress .marks span:nth-child(4) { text-align: right; }
+    .risk-progress .marks span.on { color: var(--text); font-weight: 700; }
+
+    /* ── 경과일 + 우선순위 emphasis ── */
+    .emphasis-grid {
+      margin-top: 12px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .emp {
+      padding: 12px;
+      background: rgba(6, 17, 36, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .emp .k { font-size: 11px; color: var(--text-mute); }
+    .emp .v {
+      margin-top: 4px;
+      font-size: 22px; font-weight: 800; letter-spacing: -0.4px;
+      font-feature-settings: "tnum";
+    }
+    .emp .v span { font-size: 12px; color: var(--text-mute); font-weight: 600; margin-left: 2px; }
+    .emp .s { margin-top: 3px; font-size: 11px; color: var(--text-dim); }
+    .emp.days-warn { border-color: rgba(234,179,8,0.35); background: rgba(234,179,8,0.06); }
+    .emp.days-warn .v { color: #ffe188; }
+    .emp.days-danger { border-color: rgba(249,115,22,0.4); background: rgba(249,115,22,0.07); }
+    .emp.days-danger .v { color: #ffb37a; }
+    .emp.days-critical { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
+    .emp.days-critical .v { color: #ff8a8a; }
+    .emp.prio .v { color: var(--accent); }
+    .emp.prio.top1 .v { color: #ff8a8a; }
+    .emp.prio.top1 { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.06); }
+
+    .detail-contact-bar {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(6, 17, 36, 0.55);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .detail-contact-bar .dcb-main {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    }
+    .detail-contact-bar .dcb-dplus {
+      font-size: 12px; color: var(--text-mute);
+    }
+    .detail-contact-bar .dcb-dplus strong {
+      color: var(--text); font-size: 15px; font-weight: 800;
+    }
+    .detail-contact-bar .dcb-chip {
+      font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+      border: 1px solid transparent;
+    }
+    .detail-contact-bar .dcb-chip.tier-ok { background: rgba(16,185,129,0.12); color: #86efac; border-color: rgba(16,185,129,0.35); }
+    .detail-contact-bar .dcb-chip.tier-warn { background: rgba(234,179,8,0.12); color: #ffe188; border-color: rgba(234,179,8,0.35); }
+    .detail-contact-bar .dcb-chip.tier-danger { background: rgba(249,115,22,0.14); color: #ffb37a; border-color: rgba(249,115,22,0.4); }
+    .detail-contact-bar .dcb-chip.tier-urgent { background: rgba(239,68,68,0.15); color: #fda4a4; border-color: rgba(239,68,68,0.45); }
+    .detail-contact-bar .dcb-chip.tier-unknown { background: rgba(148,163,184,0.12); color: #a8b8d0; border-color: rgba(148,163,184,0.3); }
+    .detail-contact-bar .dcb-today {
+      margin-top: 8px;
+      font-size: 11px; font-weight: 700;
+      color: #fda4a4;
+    }
+
+    .risk-progress .fill.fill-tier-ok {
+      background: linear-gradient(90deg, #06b6d4 0%, #22c55e 100%);
+    }
+    .risk-progress .fill.fill-tier-warn {
+      background: linear-gradient(90deg, #eab308 0%, #f97316 100%);
+    }
+    .risk-progress .fill.fill-tier-danger {
+      background: linear-gradient(90deg, #f97316 0%, #ef4444 85%);
+    }
+    .risk-progress .fill.fill-tier-urgent {
+      background: linear-gradient(90deg, #dc2626 0%, #b91c1c 100%);
+    }
+    .risk-progress .fill.fill-tier-unknown {
+      background: rgba(148, 163, 184, 0.45);
+    }
+
+    .crm-section {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      position: relative;
+    }
+    .crm-title, .crm-log-title {
+      font-size: 12px; font-weight: 700; color: var(--text-mute); letter-spacing: -0.1px;
+      margin-bottom: 8px;
+    }
+    .crm-log-title { margin-top: 14px; margin-bottom: 6px; }
+    .crm-form .crm-label {
+      display: block; font-size: 11px; color: var(--text-dim); margin-top: 8px; margin-bottom: 4px;
+    }
+    .crm-form .crm-input, .crm-form .crm-textarea {
+      width: 100%; box-sizing: border-box;
+      padding: 10px 12px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      background: rgba(6, 17, 36, 0.65);
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .crm-form .crm-textarea { resize: vertical; min-height: 56px; }
+    .crm-form .crm-save {
+      margin-top: 12px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #fff;
+    }
+    .crm-form .crm-save:active { opacity: 0.92; }
+    .crm-form .crm-save:disabled { opacity: 0.5; cursor: not-allowed; }
+    .crm-offline {
+      font-size: 12px; color: var(--text-dim); padding: 10px;
+      background: rgba(255,255,255,0.04); border-radius: 11px; border: 1px dashed var(--border);
+    }
+    .crm-log-list { display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .action-log-item {
+      padding: 10px 12px;
+      border-radius: 11px;
+      background: rgba(6, 17, 36, 0.5);
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .action-log-date { font-size: 11px; color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+    .action-log-memo { color: var(--text); line-height: 1.45; word-break: break-word; }
+    .action-log-meta { margin-top: 6px; font-size: 11px; color: var(--text-dim); }
+    .action-log-empty { font-size: 12px; color: var(--text-dim); padding: 8px 0; }
+
+    .app-toast {
+      position: fixed;
+      left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%) translateY(120%);
+      z-index: 9999;
+      padding: 11px 18px;
+      border-radius: 12px;
+      background: rgba(15, 42, 85, 0.95);
+      border: 1px solid rgba(59,130,246,0.4);
+      color: #e8f0ff;
+      font-size: 13px; font-weight: 600;
+      box-shadow: 0 10px 36px rgba(0,0,0,0.45);
+      transition: transform 0.35s cubic-bezier(.22,.61,.36,1);
+      pointer-events: none;
+      max-width: calc(100vw - 32px);
+      text-align: center;
+    }
+    .app-toast.visible { transform: translateX(-50%) translateY(0); }
+
+    /* ───────── Transactions ───────── */
+    .tx-list { display: flex; flex-direction: column; }
+    .tx-row {
+      display: grid;
+      grid-template-columns: 36px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 11px 4px;
+      border-top: 1px solid var(--border);
+    }
+    .tx-row:first-child { border-top: 0; }
+    .tx-row .ico {
+      width: 32px; height: 32px;
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 12px; font-weight: 700;
+    }
+    .tx-row.sale .ico { background: rgba(59, 130, 246, 0.18); color: #93c5fd; }
+    .tx-row.col  .ico { background: rgba(16, 185, 129, 0.18); color: #86efac; }
+    .tx-row .ti {
+      font-size: 13px; font-weight: 600; letter-spacing: -0.1px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .tx-row .dt { font-size: 11px; color: var(--text-mute); margin-top: 2px; }
+    .tx-row .amt {
+      text-align: right;
+      font-size: 13px; font-weight: 700;
+      font-feature-settings: "tnum";
+    }
+    .tx-row.col .amt { color: var(--risk-safe); }
+    .tx-row.sale .amt { color: #93c5fd; }
+    .tx-row .bal {
+      text-align: right;
+      font-size: 10px; color: var(--text-dim); margin-top: 2px;
+      font-feature-settings: "tnum";
+    }
+
+    /* ───────── Empty / Skeleton ───────── */
+    .empty-state {
+      padding: 28px 12px;
+      text-align: center;
+      color: var(--text-mute);
+      font-size: 13px;
+    }
+    .empty-state .ico {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      display: grid; place-items: center;
+      margin: 0 auto 10px;
+      color: var(--text-dim);
+    }
+    .empty-state .ttl {
+      color: var(--text); font-weight: 600; font-size: 14px; margin-bottom: 4px;
+    }
+    .empty-state .sub { font-size: 12px; color: var(--text-dim); }
+
+    .skeleton {
+      position: relative;
+      overflow: hidden;
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+    }
+    .skeleton::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,0.06) 50%,
+        transparent 100%);
+      animation: shimmer 1.3s infinite;
+    }
+    @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+    .sk-line { height: 12px; border-radius: 6px; }
+    .sk-line.lg { height: 22px; border-radius: 8px; }
+    .sk-line.xl { height: 34px; border-radius: 10px; }
+    .sk-row {
+      padding: 12px 4px;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 10px; align-items: center;
+    }
+    .sk-row:first-child { border-top: 0; }
+    .sk-row .sk-avatar { width: 26px; height: 26px; border-radius: 8px; }
+    .sk-stack { display: flex; flex-direction: column; gap: 8px; }
+    .sk-stack > * { width: 100%; }
+    .sk-w-70 { width: 70%; } .sk-w-50 { width: 50%; } .sk-w-40 { width: 40%; }
+
+
+    /* ───────── Bottom Tabbar ───────── */
+    .tabbar {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: rgba(10, 22, 40, 0.92);
+      backdrop-filter: saturate(140%) blur(16px);
+      -webkit-backdrop-filter: saturate(140%) blur(16px);
+      border-top: 1px solid var(--border-strong);
+      padding-bottom: env(safe-area-inset-bottom);
+      z-index: 50;
+      transition: transform 0.2s ease;
+      will-change: transform;
+    }
+    body.kbd-open .tabbar {
+      transform: translate(-50%, 110%);
+      pointer-events: none;
+    }
+    /* 데이터 소스 안내 배너 */
+    .source-banner {
+      display: none;
+      margin: 0 0 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      align-items: center;
+      gap: 8px;
+      background: rgba(249,115,22,0.10);
+      border: 1px solid rgba(249,115,22,0.32);
+      color: #ffb37a;
+    }
+    body.ds-fallback .source-banner.fallback { display: flex; }
+    body.ds-error .source-banner.error-api { display: flex; }
+    body.ds-mock.has-api .source-banner.mock-api-empty { display: flex; }
+    .source-banner.error-api {
+      background: rgba(239,68,68,0.10);
+      border-color: rgba(239,68,68,0.35);
+      color: #fda4a4;
+    }
+    .source-banner b { color: #fff; }
+    .source-banner .x {
+      margin-left: auto;
+      width: 22px; height: 22px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      background: rgba(255,255,255,0.05);
+      cursor: pointer;
+    }
+    body.banner-dismissed .source-banner { display: none !important; }
+    .tabbar .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      height: var(--tabbar-h);
+    }
+    .tab {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 4px;
+      color: var(--text-dim);
+      background: none;
+      border: 0;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: -0.1px;
+      padding: 6px 4px 4px;
+      position: relative;
+      transition: color 0.15s;
+    }
+    .tab svg { width: 22px; height: 22px; display: block; }
+    .tab:active { color: #cbd5e1; }
+    .tab.active { color: var(--accent); }
+    .tab.active::before {
+      content: '';
+      position: absolute;
+      top: 4px;
+      width: 28px; height: 3px;
+      border-radius: 0 0 4px 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+    }
+    .tab .badge-num {
+      position: absolute;
+      top: 4px;
+      right: calc(50% - 22px);
+      min-width: 16px; height: 16px; padding: 0 4px;
+      border-radius: 999px;
+      background: var(--risk-critical);
+      color: #fff;
+      font-size: 10px; font-weight: 700;
+      display: grid; place-items: center;
+      box-shadow: 0 0 0 2px var(--bg-1);
+    }
+
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 10px;
+    }
+    body.dashboard-mode .footer { display: none; }
+
+    .flash { animation: flash 0.6s ease; }
+    @keyframes flash {
+      0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.6); }
+      100% { box-shadow: 0 0 0 14px rgba(59,130,246,0); }
+    }
+
+    .detail-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .detail-toolbar .btn-text {
+      flex: 0 0 auto;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-strong);
+      background: rgba(8, 22, 44, 0.55);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .detail-toolbar .btn-text:active { background: rgba(255,255,255,0.08); }
+    .detail-toolbar .btn-print {
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(59, 130, 246, 0.45);
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .list-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin: 0 4px 8px;
+    }
+    .list-toolbar .btn-print {
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(59, 130, 246, 0.45);
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .print-only { display: none; }
+    .print-head {
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+      font-size: 12px;
+      color: #111;
+    }
+    .print-head strong { font-size: 16px; display: block; margin-bottom: 4px; }
+
+    /* ─── 주간 리포트 (인앱 전체화면 · PWA/WebView 호환) ─── */
+    .view[data-view="report-print"] { display: none; }
+    .view[data-view="report-print"].active { display: block; }
+    body.report-view-open .app-top,
+    body.report-view-open .source-banner,
+    body.report-view-open .footer,
+    body.report-view-open #tabbar {
+      display: none !important;
+    }
+    body.report-view-open {
+      background: #e2e8f0 !important;
+    }
+    body.report-view-open .app {
+      max-width: none;
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    }
+    .report-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 10px 4px calc(10px + env(safe-area-inset-top));
+      padding-top: calc(10px + env(safe-area-inset-top));
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      background: rgba(226, 232, 240, 0.94);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #cbd5e1;
+      margin: -14px -16px 0;
+      margin-top: calc(-14px - env(safe-area-inset-top));
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+    .report-toolbar-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-left: auto;
+    }
+    .btn-report-close {
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid #94a3b8;
+      background: #fff;
+      color: #0f172a;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .btn-report-pdf {
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(59, 130, 246, 0.45);
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .report-shell {
+      padding: 12px 0 32px;
+      max-width: 210mm;
+      margin: 0 auto;
+    }
+    .report-doc {
+      background: #fff;
+      color: #111;
+      border-radius: 12px;
+      padding: clamp(12px, 4vw, 18px);
+      padding-left: max(clamp(12px, 4vw, 18px), env(safe-area-inset-left));
+      padding-right: max(clamp(12px, 4vw, 18px), env(safe-area-inset-right));
+      box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12);
+      font-family: 'Pretendard', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+      font-size: 10pt;
+      line-height: 1.35;
+    }
+    .report-doc h1 {
+      font-size: clamp(14pt, 4.2vw, 16pt);
+      margin: 0 0 6px;
+      letter-spacing: -0.5px;
+      word-break: keep-all;
+    }
+    .report-doc .report-meta {
+      font-size: 9pt;
+      color: #444;
+      margin-bottom: 12px;
+      word-break: keep-all;
+    }
+    .report-doc .report-meta span { margin-right: 12px; display: inline-block; }
+    .report-doc .kpi-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    @media (min-width: 640px) {
+      .report-doc .kpi-row { grid-template-columns: repeat(4, 1fr); }
+    }
+    .report-doc .kpi {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #f8fafc;
+    }
+    .report-doc .kpi .rk { font-size: 8.5pt; color: #555; }
+    .report-doc .kpi .rv {
+      font-size: 12pt;
+      font-weight: 800;
+      margin-top: 4px;
+      font-feature-settings: "tnum";
+    }
+    .report-doc h2 {
+      font-size: 11pt;
+      margin: 14px 0 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #ddd;
+      word-break: keep-all;
+    }
+    .report-doc table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9pt;
+      margin-bottom: 4px;
+    }
+    .report-doc th, .report-doc td {
+      border: 1px solid #ccc;
+      padding: 5px 6px;
+      vertical-align: top;
+    }
+    .report-doc th {
+      background: #eef2f7;
+      font-weight: 700;
+      text-align: left;
+    }
+    .report-doc td.num {
+      text-align: right;
+      font-feature-settings: "tnum";
+      white-space: nowrap;
+    }
+    .report-doc td.c { text-align: center; }
+    .report-doc td.small { font-size: 8.5pt; color: #333; }
+    .report-doc .muted { color: #666; text-align: center; }
+    .report-doc .pill {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 8.5pt;
+      font-weight: 700;
+    }
+    .report-doc .p-crit { background: #fee2e2; color: #991b1b; }
+    .report-doc .p-high { background: #ffedd5; color: #9a3412; }
+    .report-doc .foot {
+      margin-top: 16px;
+      padding-top: 10px;
+      border-top: 1px solid #bbb;
+      font-size: 8.5pt;
+      color: #444;
+      word-break: keep-all;
+    }
+
+    /* ─── 미수잔액 전체 리스트 섹션 ─── */
+    .recv-all-search-wrap {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .recv-all-search-wrap .ico {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      color: var(--text-mute);
+      pointer-events: none;
+      display: grid; place-items: center;
+    }
+    .recv-all-search-wrap input {
+      width: 100%;
+      padding: 11px 12px 11px 38px;
+      background: rgba(6, 17, 36, 0.65);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .recv-all-search-wrap input::placeholder { color: var(--text-dim); }
+    .recv-all-search-wrap input:focus {
+      border-color: var(--accent);
+      background: rgba(6, 17, 36, 0.85);
+    }
+
+    .recv-all-scroll {
+      max-height: 520px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      margin: 0 -14px -14px;
+      padding: 0 14px 14px;
+    }
+    @media (max-width: 480px) {
+      .recv-all-scroll { max-height: 60vh; }
+    }
+    .recv-all-scroll::-webkit-scrollbar { width: 4px; }
+    .recv-all-scroll::-webkit-scrollbar-track { background: transparent; }
+    .recv-all-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.2); border-radius: 2px; }
+
+    .recv-row {
+      display: grid;
+      grid-template-columns: 30px 1fr auto;
+      align-items: start;
+      gap: 10px;
+      padding: 13px 0;
+      border-top: 1px solid var(--border);
+    }
+    .recv-row:first-child { border-top: 0; }
+
+    .recv-rank {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 11px; font-weight: 800;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-mute);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .recv-rank.r1 { background: rgba(239,68,68,0.18); color: #ff8a8a; }
+    .recv-rank.r2 { background: rgba(249,115,22,0.18); color: #ffb37a; }
+    .recv-rank.r3 { background: rgba(234,179,8,0.18); color: #ffe28a; }
+
+    .recv-info .recv-name {
+      font-size: 14px; font-weight: 700; letter-spacing: -0.2px;
+      cursor: pointer;
+    }
+    .recv-info .recv-name:active { opacity: 0.7; }
+    .recv-info .recv-meta {
+      margin-top: 4px;
+      display: flex; flex-wrap: wrap; gap: 4px 8px;
+      font-size: 11px; color: var(--text-mute);
+      line-height: 1.5;
+    }
+    .recv-info .recv-meta .m-item { display: flex; align-items: center; gap: 3px; }
+    .recv-info .recv-meta .m-label { color: var(--text-dim); }
+
+    .recv-info .recv-memo {
+      margin-top: 5px;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      font-size: 11px; color: var(--text-mute);
+      line-height: 1.45;
+    }
+
+    .recv-info .recv-status-btns {
+      display: flex; flex-wrap: wrap; gap: 5px;
+      margin-top: 7px;
+    }
+    .recv-status-btn {
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: transparent;
+      color: var(--text-mute);
+      font-size: 10px; font-weight: 700;
+      font-family: inherit;
+      cursor: default;
+      letter-spacing: -0.1px;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .recv-status-btn.st-manage  { border-color: rgba(239,68,68,0.4); color: #fda4a4; }
+    .recv-status-btn.st-normal  { border-color: rgba(16,185,129,0.4); color: #86efac; }
+    .recv-status-btn.st-pending { border-color: rgba(234,179,8,0.4); color: #ffe188; }
+    .recv-status-btn.st-check   { border-color: rgba(148,163,184,0.4); color: #a8b8d0; }
+
+    .recv-right {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .recv-right .recv-bal {
+      font-size: 14px; font-weight: 800; letter-spacing: -0.3px;
+      font-feature-settings: "tnum";
+      white-space: nowrap;
+    }
+    .recv-right .recv-days {
+      margin-top: 4px;
+      font-size: 10px; color: var(--text-mute);
+      white-space: nowrap;
+    }
+    .recv-right .recv-days.d-warn   { color: #ffe188; }
+    .recv-right .recv-days.d-danger { color: #ffb37a; }
+    .recv-right .recv-days.d-urgent { color: #ff8a8a; }
+
+    @media print {
+      .recv-all-search-wrap, .recv-status-btn { display: none !important; }
+      .recv-all-scroll { max-height: none !important; overflow: visible !important; }
+    }
+
+    @page { size: A4; margin: 12mm; }
+
+    @media print {
+      html, body { background: #fff !important; color: #111 !important; }
+      body * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body.report-view-open .no-print,
+      body.report-view-open .tabbar,
+      body.report-view-open .source-banner,
+      body.report-view-open .header-row-status,
+      body.report-view-open .footer,
+      body.report-view-open .icon-btn { display: none !important; }
+      body.report-view-open .view:not([data-view="report-print"]) { display: none !important; }
+      body.report-view-open .view[data-view="report-print"] { display: block !important; }
+      body.report-view-open .app { max-width: none !important; padding: 12px !important; }
+      body.report-view-open .report-doc { box-shadow: none !important; border-radius: 0 !important; }
+      .no-print, .tabbar, .source-banner, .header-row-status,
+      .detail-toolbar, .list-toolbar, .icon-btn, .footer, .detail-actions { display: none !important; }
+      body:not(.report-view-open) .app { max-width: none; padding: 12px 16px; padding-bottom: 12px !important; }
+      .print-only { display: block !important; }
+      body:not(.report-view-open) .view { display: none !important; }
+      body:not(.report-view-open) .view.active { display: block !important; }
+      .card, .detail-card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+        background: #fff !important;
+        break-inside: avoid;
+      }
+      .tx-row .ico { border: 1px solid #ddd; }
+      body.report-view-open .report-doc .kpi { break-inside: avoid; }
+      body.report-view-open .report-doc tr { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- ───── App header (2단) ───── -->
+    <header class="app-top no-print">
+      <div class="header-row-status">
+        <div class="header-status">
+          <span class="status-pill live"><span class="dot"></span>실시간 데이터</span>
+          <span class="status-pill partial"><span class="dot"></span>실시간 데이터</span>
+          <span class="status-pill fallback"><span class="dot"></span>샘플 데이터</span>
+          <span class="status-pill error"><span class="dot"></span>데이터 없음</span>
+          <span class="status-pill mock"><span class="dot"></span>데모 모드</span>
+          <span class="status-pill loading"><span class="dot"></span>불러오는 중</span>
+        </div>
+        <button class="icon-btn no-print" id="btn-refresh" type="button" aria-label="새로고침">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
+      <h1 class="app-title">현금흐름 위험관리판</h1>
+      <p class="app-sub" id="topbar-sub">대표 전용 · 불러오는 중</p>
+    </header>
+
+    <!-- 데이터 소스 안내 배너 -->
+    <div class="source-banner fallback" role="status">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--risk-high);flex-shrink:0;"></span>
+      <span><b>샘플 데이터</b> · API 연결에 실패하여 예시 거래처만 표시합니다. (CONFIG.USE_MOCK_FALLBACK)</span>
+      <span class="x" data-banner-dismiss aria-label="닫기">×</span>
+    </div>
+    <div class="source-banner error-api" role="status">
+      <span style="width:8px;height:8px;border-radius:50%;background:#f87171;flex-shrink:0;"></span>
+      <span><b>데이터 없음</b> · API 연결에 실패했습니다. 네트워크 확인 후 새로고침 해 주세요.</span>
+      <span class="x" data-banner-dismiss aria-label="닫기">×</span>
+    </div>
+    <div class="source-banner mock-api-empty" role="status">
+      <span style="width:8px;height:8px;border-radius:50%;background:#a8b8d0;flex-shrink:0;"></span>
+      <span><b>데모 모드</b> · 실제 데이터 연결을 위해 <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;">CONFIG.API_URL</code> 을 설정해 주세요.</span>
+      <span class="x" data-banner-dismiss aria-label="닫기">×</span>
+    </div>
+
+    <!-- ───── View: 대시보드 ───── -->
+    <section class="view active" data-view="dashboard">
+      <!-- Hero -->
+      <div id="hero-slot">
+        <div class="hero">
+          <div class="label">총 미수잔액 <span class="badge" id="hero-badge">관리 필요</span></div>
+          <div class="value" id="hero-total">0<small>원</small></div>
+          <div class="row">
+            <div class="mini">
+              <div class="k">총 판매</div>
+              <div class="v" id="hero-sales">0</div>
+            </div>
+            <div class="mini">
+              <div class="k">총 수금</div>
+              <div class="v green" id="hero-collect">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <h3>핵심 지표</h3>
+        <div class="section-title-actions no-print">
+          <span class="more" id="dashboard-asof">오늘 기준</span>
+          <button type="button" class="btn-print-inline" id="btn-print-weekly" aria-label="주간 회수관리 리포트 인쇄">인쇄</button>
+        </div>
+      </div>
+      <div id="kpi-slot">
+        <div class="kpi-grid">
+          <div class="kpi gr">
+            <div class="icon">%</div>
+            <div class="label">전체 회수율</div>
+            <div class="value" id="kpi-rate">0%</div>
+            <div class="delta" id="kpi-rate-sub">목표 85% 대비</div>
+          </div>
+          <div class="kpi red">
+            <div class="icon">!</div>
+            <div class="label">위험 거래처 수</div>
+            <div class="value" id="kpi-risk">0<small>개사</small></div>
+            <div class="delta" id="kpi-risk-sub">매우위험 0 · 위험 0</div>
+          </div>
+          <div class="kpi org">
+            <div class="icon">⏱</div>
+            <div class="label">30일 이상 수금 없음</div>
+            <div class="value" id="kpi-over30">0<small>개사</small></div>
+            <div class="delta" id="kpi-over30-sub">60일 이상 0개사</div>
+          </div>
+          <div class="kpi cy">
+            <div class="icon">⚑</div>
+            <div class="label">관리대상 거래처</div>
+            <div class="value" id="kpi-manage">0<small>개사</small></div>
+            <div class="delta" id="kpi-manage-sub">주의 이상 합계</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">
+        <h3>상세 목록 바로가기</h3>
+        <span class="more">필요할 때만 확인</span>
+      </div>
+      <div class="card">
+        <div class="risk-list">
+          <div class="risk-row" id="go-risk-list">
+            <div class="rank top2">→</div>
+            <div class="info">
+              <div class="name">위험거래처 전체 보기</div>
+              <div class="meta"><span>위험/주의 거래처 상세 목록</span></div>
+            </div>
+            <div class="amount"><div class="val" id="go-risk-count">0개사</div></div>
+          </div>
+          <div class="risk-row" id="go-over30-list">
+            <div class="rank top3">→</div>
+            <div class="info">
+              <div class="name">30일 이상 연체 거래처 보기</div>
+              <div class="meta"><span>장기 연체 우선 점검</span></div>
+            </div>
+            <div class="amount"><div class="val" id="go-over30-count">0개사</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── 미수잔액 전체 리스트 ─── -->
+      <div class="section-title" style="margin-top:22px;">
+        <h3>미수잔액 전체 리스트</h3>
+        <span class="more" id="recv-all-count"></span>
+      </div>
+      <div class="card" id="recv-all-card">
+        <!-- 검색 -->
+        <div class="recv-all-search-wrap">
+          <span class="ico">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/>
+            </svg>
+          </span>
+          <input id="recv-all-search" type="text" inputmode="search"
+            placeholder="거래처명 검색" autocomplete="off" />
+        </div>
+        <!-- 스크롤 영역 -->
+        <div class="recv-all-scroll">
+          <div id="recv-all-slot"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───── View: 위험거래처 ───── -->
+    <section class="view" data-view="risk">
+      <div class="section-title">
+        <h3 id="risk-heading">위험 거래처</h3>
+        <span class="more" id="risk-count">0개사</span>
+      </div>
+      <div class="list-toolbar no-print">
+        <button type="button" class="btn-print" id="btn-print-risk">인쇄</button>
+      </div>
+      <div id="risk-print-head" class="print-only print-head" aria-hidden="true"></div>
+      <div id="risk-slot"></div>
+    </section>
+
+    <!-- ───── View: 거래처검색 ───── -->
+    <section class="view" data-view="search">
+      <div class="section-title">
+        <h3>거래처 검색</h3>
+        <span class="more" id="search-count"></span>
+      </div>
+      <div class="card">
+        <div class="search-wrap">
+          <span class="ico">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="20" y1="20" x2="16.5" y2="16.5"></line>
+            </svg>
+          </span>
+          <input id="search-input" type="text" inputmode="search" placeholder="거래처명을 입력하세요 (예: 태양산업사)" autocomplete="off" />
+        </div>
+      </div>
+      <div id="search-slot" style="margin-top:14px;"></div>
+    </section>
+
+    <!-- ───── View: 거래처 상세 (탭 없음 · 목록에서만 진입) ───── -->
+    <section class="view" data-view="detail">
+      <div class="detail-toolbar no-print">
+        <button type="button" class="btn-text" id="btn-detail-back">← 목록</button>
+        <button type="button" class="btn-print" id="btn-print-detail">인쇄</button>
+      </div>
+      <div class="section-title">
+        <h3>거래처 상세</h3>
+        <span class="more" id="detail-name-hint">선택된 거래처 없음</span>
+      </div>
+      <div id="detail-print-head" class="print-only print-head" aria-hidden="true"></div>
+      <div id="detail-slot"></div>
+
+      <div class="section-title">
+        <h3>최근 거래내역</h3>
+        <span class="more" id="tx-count"></span>
+      </div>
+      <div class="card" id="tx-slot"></div>
+    </section>
+
+    <!-- ───── View: 주간 리포트 (인쇄/PDF · about:blank 미사용) ───── -->
+    <section class="view" data-view="report-print" id="view-report-print" aria-label="주간 미수 및 현금흐름 위험관리 리포트">
+      <div class="report-toolbar no-print">
+        <button type="button" class="btn-report-close" id="btn-report-close" aria-label="닫기">← 닫기</button>
+        <div class="report-toolbar-actions">
+          <button type="button" class="btn-report-pdf" id="btn-report-pdf" aria-label="PDF 저장 또는 인쇄">PDF 저장 / 인쇄</button>
+        </div>
+      </div>
+      <div class="report-shell">
+        <div id="report-print-slot"></div>
+      </div>
+    </section>
+
+    <div class="footer">© 지점 미수 및 현금흐름 위험관리 시스템 · v0.2</div>
+  </div>
+
+  <!-- ───── Bottom Tabbar ───── -->
+  <nav class="tabbar no-print" id="tabbar">
+    <div class="tabs">
+      <button class="tab active" data-tab="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+        <span>대시보드</span>
+      </button>
+      <button class="tab" data-tab="risk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>위험거래처</span>
+        <span class="badge-num" id="tab-risk-badge" style="display:none;">0</span>
+      </button>
+      <button class="tab" data-tab="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"/>
+          <line x1="20" y1="20" x2="16.5" y2="16.5"/>
+        </svg>
+        <span>거래처검색</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+  const APP_VERSION = 'receivable-list-debug-20260520-3';
+  console.log('[APP_VERSION]', APP_VERSION);
+  const DATA_VERSION = '20260513-erp-v2';
+  const LS_VERSION_KEY = 'cashflow-risk.dataVersion';
+
+  function migrateLocalStorageDataVersion() {
+    try {
+      if (localStorage.getItem(LS_VERSION_KEY) === DATA_VERSION) return;
+      const keys = Object.keys(localStorage);
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        if (
+          k.indexOf('cashflow') === 0 ||
+          k === 'customers' ||
+          k === 'dashboard' ||
+          k === 'cache' ||
+          k === 'lastData' ||
+          k === 'mock'
+        ) {
+          localStorage.removeItem(k);
+        }
+      }
+      localStorage.setItem(LS_VERSION_KEY, DATA_VERSION);
+    } catch (err) {}
+  }
+  migrateLocalStorageDataVersion();
+
+  /* ════════════════════════════════════════════════════════
+   *  현금흐름 위험관리 — 모바일 대시보드 (v0.4)
+   *
+   *  Layer 1: CONFIG       — 환경 설정
+   *  Layer 2: fetch*       — Apps Script Web App 직결
+   *  Layer 3: load*        — UI에 데이터 공급, mock fallback 내장
+   *  Layer 4: render*      — DOM 갱신만 담당
+   *  Layer 5: state / router / events
+   *
+   *  ── Apps Script doGet(e) 예상 응답 스키마 ──
+   *  ?action=dashboard
+   *    → { totalBalance, totalSales, totalCollect, collectionRate,
+   *        critical, high, mid, riskCnt, manage, over30, over60, asOf }
+   *
+   *  ?action=customers
+   *    → [ { name, erp?, totalSales, totalCollection, balance,
+   *          lastPayDate, tradeCount, risk, memo }, ... ]
+   *
+   *  ?action=detail&name=거래처명
+   *    → { customer: { ...위와 동일... },
+   *        transactions: [ { date:'MM/DD', type:'판매'|'수금',
+   *                          content, amount, balance }, ... ] }
+   *
+   *  ?action=getActions&customer=거래처명
+   *    → [ { time, customer, memo, manager, nextDate }, ... ] 최대 20건
+   *
+   *  POST (x-www-form-urlencoded): action=saveAction
+   *    customer, memo, manager, nextDate → { success:true }
+   *
+   *  Code.gs 측:
+   *    function doGet(e) {
+   *      const a = e.parameter.action;
+   *      let result;
+   *      if (a === 'dashboard')      result = getDashboardJson_();
+   *      else if (a === 'customers') result = getCustomersJson_();
+   *      else if (a === 'detail')    result = getDetailJson_(e.parameter.name);
+   *      else                         result = { error: 'unknown action' };
+   *      return ContentService.createTextOutput(JSON.stringify(result))
+   *               .setMimeType(ContentService.MimeType.JSON);
+   *    }
+   * ════════════════════════════════════════════════════════ */
+
+  // ─── [1] CONFIG ────────────────────────────────────────
+  const CONFIG = {
+    // Apps Script Web App 배포 URL을 입력하면 자동 실데이터 모드로 전환됨.
+    // 예: 'https://script.google.com/macros/s/AKfycby.../exec'
+    API_URL: 'https://script.google.com/macros/s/AKfycbzoXvlAIBudP53vHZwCu1ASqlCmU7_xiGroiFY79IoKIMaU84q_RVP2cUbNM63DuOW3hA/exec',
+    USE_MOCK: false,          // true 강제 시 API_URL 있어도 mock 사용 (개발용)
+    /** API 실패 시에만 MOCK_CUSTOMERS 샘플로 채움. 운영 배포는 false 권장 */
+    USE_MOCK_FALLBACK: false,
+    API_TIMEOUT_MS: 12_000,   // 단일 요청 타임아웃
+    REFRESH_MIN_MS: 600       // 스켈레톤 최소 유지 시간 (깜빡임 방지)
+  };
+
+  function isMockMode() { return CONFIG.USE_MOCK || !CONFIG.API_URL; }
+  function hasApi()     { return !!CONFIG.API_URL; }
+  function useMockFallback() {
+    return !!CONFIG.USE_MOCK_FALLBACK && hasApi() && !CONFIG.USE_MOCK;
+  }
+
+  // ─── [2] MOCK DATA ─────────────────────────────────────
+  const TODAY = new Date(2026, 4, 11); // 2026-05-11
+
+  function getRiskLevel(balance) {
+    if (balance >= 30_000_000) return '매우위험';
+    if (balance >= 10_000_000) return '위험';
+    if (balance >= 3_000_000)  return '주의';
+    if (balance > 0)            return '관찰';
+    return '정상';
+  }
+
+  function getDaysFromLastPay(lastPay) {
+    if (!lastPay && lastPay !== 0) return 9999;
+    const s = String(lastPay).trim();
+    if (!s || s === '-') return 9999;
+
+    let dt = null;
+
+    // YYYY-MM-DD / YYYY/MM/DD / YYYY.MM.DD
+    let mp = s.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/);
+    if (mp) {
+      dt = new Date(Number(mp[1]), Number(mp[2]) - 1, Number(mp[3]));
+    }
+
+    // Korean: "2026. 5. 20." or "2026. 05. 20"
+    if (!dt) {
+      mp = s.match(/^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+      if (mp) dt = new Date(Number(mp[1]), Number(mp[2]) - 1, Number(mp[3]));
+    }
+
+    // MM/DD (레거시 mock 형식)
+    if (!dt) {
+      mp = s.match(/^(\d{1,2})\/(\d{1,2})$/);
+      if (mp) {
+        const mo = Number(mp[1]), dy = Number(mp[2]);
+        if (mo >= 1 && mo <= 12 && dy >= 1 && dy <= 31) {
+          dt = new Date(TODAY.getFullYear(), mo - 1, dy);
+          if (dt > TODAY) dt = new Date(TODAY.getFullYear() - 1, mo - 1, dy);
+        }
+      }
+    }
+
+    if (!dt || isNaN(dt.getTime())) return 9999;
+    const diff = Math.floor((TODAY - dt) / 86400000);
+    return diff < 0 ? 0 : diff;
+  }
+
+  const MOCK_CUSTOMERS = [
+    { name:'태양산업사',     erp:'이카운트', totalSales: 142_580_000, totalCollection: 98_200_000, balance: 44_380_000, lastPayDate:'02/14', tradeCount: 58, memo:'대표 직접관리, 어음 연체 우려' },
+    { name:'대림철강(주)',   erp:'경영박사', totalSales: 96_320_000,  totalCollection: 64_500_000, balance: 31_820_000, lastPayDate:'03/02', tradeCount: 42, memo:'분할입금 협의중' },
+    { name:'한빛전기',       erp:'경영박사', totalSales: 78_400_000,  totalCollection: 58_200_000, balance: 20_200_000, lastPayDate:'03/28', tradeCount: 36, memo:'정상 거래중' },
+    { name:'성진기업',       erp:'이카운트', totalSales: 64_120_000,  totalCollection: 48_500_000, balance: 15_620_000, lastPayDate:'04/05', tradeCount: 31, memo:'' },
+    { name:'동신상사',       erp:'경영박사', totalSales: 52_000_000,  totalCollection: 39_800_000, balance: 12_200_000, lastPayDate:'04/18', tradeCount: 27, memo:'' },
+    { name:'세종금속',       erp:'이카운트', totalSales: 41_200_000,  totalCollection: 33_500_000, balance:  7_700_000, lastPayDate:'04/22', tradeCount: 24, memo:'' },
+    { name:'우진건재',       erp:'경영박사', totalSales: 38_500_000,  totalCollection: 32_400_000, balance:  6_100_000, lastPayDate:'04/29', tradeCount: 22, memo:'' },
+    { name:'미래엔지니어링', erp:'경영박사', totalSales: 31_000_000,  totalCollection: 26_700_000, balance:  4_300_000, lastPayDate:'05/02', tradeCount: 18, memo:'' },
+    { name:'경동산업',       erp:'이카운트', totalSales: 28_700_000,  totalCollection: 25_500_000, balance:  3_200_000, lastPayDate:'05/04', tradeCount: 16, memo:'' },
+    { name:'유성기계',       erp:'경영박사', totalSales: 25_400_000,  totalCollection: 23_900_000, balance:  1_500_000, lastPayDate:'05/06', tradeCount: 14, memo:'' },
+    { name:'한솔전업',       erp:'경영박사', totalSales: 22_100_000,  totalCollection: 21_300_000, balance:    800_000, lastPayDate:'05/08', tradeCount: 12, memo:'' },
+    { name:'신화이엔지',     erp:'이카운트', totalSales: 19_800_000,  totalCollection: 19_800_000, balance:          0, lastPayDate:'05/09', tradeCount: 11, memo:'잔액 클리어' },
+    { name:'대한배관',       erp:'경영박사', totalSales: 16_500_000,  totalCollection: 16_100_000, balance:    400_000, lastPayDate:'05/07', tradeCount:  9, memo:'' },
+    { name:'에이스공구',     erp:'경영박사', totalSales: 14_200_000,  totalCollection: 13_900_000, balance:    300_000, lastPayDate:'05/10', tradeCount:  8, memo:'' },
+    { name:'평화하드웨어',   erp:'이카운트', totalSales: 11_700_000,  totalCollection: 11_700_000, balance:          0, lastPayDate:'05/06', tradeCount:  7, memo:'' }
+  ].map(c => ({ ...c, risk: getRiskLevel(c.balance) }));
+
+  const TX_FIXTURES = {
+    '태양산업사': [
+      { date:'02/03', type:'판매', content:'STS 304 환봉 25mm',  amount:  3_840_000, balance: 41_220_000 },
+      { date:'02/08', type:'판매', content:'고장력볼트 M20',     amount:  1_920_000, balance: 43_140_000 },
+      { date:'02/14', type:'수금', content:'계좌이체 입금',       amount:  5_000_000, balance: 38_140_000 },
+      { date:'02/22', type:'판매', content:'앵글 50x50x6',       amount:  2_460_000, balance: 40_600_000 },
+      { date:'03/05', type:'판매', content:'PL 12T x 1219x2438', amount:  4_120_000, balance: 44_720_000 },
+      { date:'03/18', type:'판매', content:'각관 75x75x3.2',     amount:  1_780_000, balance: 46_500_000 },
+      { date:'04/02', type:'판매', content:'환봉 SS400 50mm',    amount:  2_240_000, balance: 48_740_000 },
+      { date:'04/20', type:'판매', content:'C형강 100x50',       amount:  1_640_000, balance: 50_380_000 },
+      { date:'05/02', type:'판매', content:'고장력볼트 M16',     amount:    980_000, balance: 51_360_000 },
+      { date:'05/09', type:'판매', content:'PL 6T x 1219x2438',  amount:    3_020_000, balance: 44_380_000 }
+    ],
+    '대림철강(주)': [
+      { date:'03/02', type:'수금', content:'어음 결제',           amount:  4_000_000, balance: 27_820_000 },
+      { date:'03/10', type:'판매', content:'STS 316 PL 10T',     amount:  3_120_000, balance: 30_940_000 },
+      { date:'03/22', type:'판매', content:'고력볼트 M22',       amount:    980_000, balance: 31_920_000 },
+      { date:'04/04', type:'판매', content:'각파이프 100x50',    amount:  1_400_000, balance: 33_320_000 },
+      { date:'04/18', type:'판매', content:'환봉 SCM440 60mm',   amount:    900_000, balance: 34_220_000 },
+      { date:'05/01', type:'판매', content:'PL 20T x 1219x2438', amount:  2_600_000, balance: 36_820_000 },
+      { date:'05/07', type:'판매', content:'C형강 100x50x20',    amount:    -5_000_000, balance: 31_820_000 }
+    ]
+  };
+
+  function generateMockTx(c) {
+    const out = [];
+    const baseDays = [42, 35, 28, 22, 16, 11, 6, 2];
+    const today = new Date(TODAY);
+    let runningBal = Math.max(0, c.balance - 4_000_000);
+    for (let i = 0; i < baseDays.length; i++) {
+      const d = new Date(today); d.setDate(today.getDate() - baseDays[i]);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const isCollection = i === 2 || i === 5;
+      const amount = isCollection
+        ? Math.round((c.totalCollection / 12) / 10000) * 10000
+        : Math.round((c.totalSales / 14) / 10000) * 10000;
+      if (isCollection) runningBal = Math.max(0, runningBal - amount);
+      else runningBal += amount;
+      out.push({
+        date: `${mm}/${dd}`,
+        type: isCollection ? '수금' : '판매',
+        content: isCollection ? '계좌이체 입금'
+          : ['환봉 SS400', 'PL 10T', '각관 75x75', '앵글 50x50', '고력볼트 M20', 'C형강 100x50'][i % 6],
+        amount,
+        balance: runningBal
+      });
+    }
+    if (out.length > 0) out[out.length - 1].balance = c.balance;
+    return out;
+  }
+
+  function getMockTransactions(name) {
+    return TX_FIXTURES[name] || generateMockTx(MOCK_CUSTOMERS.find(c => c.name === name));
+  }
+
+  // ─── [3] FETCH 계층 (Apps Script Web App 직결) ──────────
+  //   - 타임아웃: CONFIG.API_TIMEOUT_MS
+  //   - cache: 'no-store' (항상 최신)
+  //   - 헤더 미사용 → CORS preflight 회피
+  //   - 응답은 텍스트로 받아 JSON.parse 시도 (HTML 오류 페이지 대응)
+  async function apiGet(action, params = {}) {
+    if (isMockMode()) return null;
+    const url = new URL(CONFIG.API_URL);
+    url.searchParams.set('action', action);
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+    });
+
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), CONFIG.API_TIMEOUT_MS);
+    try {
+      const r = await fetch(url.toString(), {
+        method: 'GET',
+        cache: 'no-store',
+        redirect: 'follow',
+        signal: ctrl.signal
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const text = await r.text();
+      let json;
+      try { json = JSON.parse(text); }
+      catch { throw new Error('JSON 파싱 실패 (Apps Script 응답이 JSON이 아님)'); }
+      if (json && typeof json === 'object' && !Array.isArray(json) && json.error) {
+        throw new Error('서버 오류: ' + json.error);
+      }
+      return json;
+    } catch (e) {
+      // AbortError, TypeError(network/CORS), HTTP, parse 모두 동일 처리
+      const tag = e.name === 'AbortError' ? '타임아웃'
+                : e.message?.includes('Failed to fetch') ? '네트워크/CORS'
+                : (e.message || '알 수 없는 오류');
+      throw new Error(tag);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function fetchDashboard()              { return apiGet('dashboard'); }
+  async function fetchCustomerList()           { return apiGet('customers'); }
+  async function fetchCustomerDetail(name)     { return apiGet('detail', { name }); }
+  async function fetchCustomerActions(customerName) {
+    if (isMockMode()) return [];
+    try {
+      const data = await apiGet('getActions', { customer: customerName });
+      return Array.isArray(data) ? data : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function apiPostSaveAction(payload) {
+    if (isMockMode()) throw new Error('API 미연결');
+    const params = new URLSearchParams();
+    params.set('action', 'saveAction');
+    params.set('customer', payload.customer);
+    params.set('memo', payload.memo || '');
+    params.set('manager', payload.manager || '');
+    params.set('nextDate', payload.nextDate || '');
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), CONFIG.API_TIMEOUT_MS);
+    try {
+      const r = await fetch(CONFIG.API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
+        cache: 'no-store',
+        redirect: 'follow',
+        signal: ctrl.signal
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const text = await r.text();
+      let json;
+      try { json = JSON.parse(text); }
+      catch { throw new Error('JSON 파싱 실패'); }
+      if (json && json.error) throw new Error(String(json.error));
+      if (json && json.success === false) throw new Error(String(json.error || '저장 실패'));
+      return json;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  // ─── [4] LOAD 계층 (UI 공급 — API → fallback to mock) ──
+  //   각 load*는 { data, source } 반환:
+  //     source: 'live'      = API 응답 사용
+  //              'fallback' = API 시도했으나 실패하여 mock 사용
+  //              'mock'     = API_URL 미설정 또는 USE_MOCK=true
+  function computeDashboardFromCustomers(customers) {
+    console.log('[over30 debug] customers length=', customers.length);
+    console.log('[over30 debug] sample=', customers.slice(0, 5));
+
+    const debugRows = customers.slice(0, 10).map(c => ({
+      name: c.name,
+      balance: c.balance,
+      lastPayDate: c.lastPayDate,
+      days: getDaysFromLastPay(c.lastPayDate)
+    }));
+    console.log('[over30 debug rows]', debugRows);
+
+    const totalBalance  = customers.reduce((s, c) => s + (c.balance || 0), 0);
+    const totalSales    = customers.reduce((s, c) => s + (c.totalSales || 0), 0);
+    const totalCollect  = customers.reduce((s, c) => s + (c.totalCollection || 0), 0);
+    const collectionRate = totalSales > 0 ? (totalCollect / totalSales) : 0;
+    const critical = customers.filter(c => c.risk === '매우위험').length;
+    const high     = customers.filter(c => c.risk === '위험').length;
+    const mid      = customers.filter(c => c.risk === '주의').length;
+
+    // over30/60: 미수잔액 > 0인 거래처만, lastPayDate가 있는 경우만 집계
+    const balanceRows = customers.filter(c => (c.balance || 0) > 0);
+    const withLastPayDate = balanceRows.filter(c => {
+      const s = String(c.lastPayDate || '').trim();
+      return s && s !== '-';
+    });
+    const noLastPayDate = balanceRows.filter(c => {
+      const s = String(c.lastPayDate || '').trim();
+      return !s || s === '-';
+    });
+    console.log('[over30] balance>0=', balanceRows.length);
+    console.log('[over30] with lastPayDate=', withLastPayDate.length);
+    console.log('[over30] no lastPayDate=', noLastPayDate.length);
+
+    let over30 = 0, over60 = 0;
+    withLastPayDate.forEach(c => {
+      const days = getDaysFromLastPay(c.lastPayDate);
+      if (days >= 30) over30++;
+      if (days >= 60) over60++;
+    });
+    console.log('[over30] over30=', over30);
+
+    return {
+      totalBalance, totalSales, totalCollect, collectionRate,
+      critical, high, mid,
+      riskCnt: critical + high,
+      manage: critical + high + mid,
+      over30, over60,
+      asOf: new Date().toISOString().slice(0, 10)
+    };
+  }
+
+  function resolveErpSource(row) {
+    const direct =
+      row?.erp ||
+      row?.['ERP출처'] ||
+      row?.erpSource ||
+      row?.source ||
+      '';
+    if (direct) return String(direct).trim();
+    const memo = String(row?.memo || row?.관리메모 || row?.note || '');
+    const m = memo.match(/ERP\s*:\s*([^\/\n\r]+)/);
+    if (m && m[1]) return m[1].trim();
+    return '';
+  }
+
+  function normalizeCustomer(c) {
+    // 필드명이 API에 따라 다를 수 있으므로 다중 후보 허용
+    const lastPayDate =
+      c.lastPayDate ||
+      c.lastCollectDate ||
+      c.lastCollectionDate ||
+      c.lastPaymentDate ||
+      c.recentCollectionDate ||
+      c['최근수금일'] ||
+      c['최종수금일'] ||
+      c['마지막수금일'] ||
+      '';
+    const balance = Number(
+      c.balance != null ? c.balance :
+      c['현재잔액'] != null ? c['현재잔액'] :
+      c['잔액'] != null ? c['잔액'] :
+      c.currentBalance != null ? c.currentBalance : 0
+    );
+    const name = c.name || c['거래처명'] || '';
+    return {
+      name,
+      erp: resolveErpSource(c),
+      totalSales: Number(c.totalSales != null ? c.totalSales : (c['총판매'] != null ? c['총판매'] : 0)),
+      totalCollection: Number(c.totalCollection != null ? c.totalCollection : (c['총수금'] != null ? c['총수금'] : 0)),
+      balance,
+      lastPayDate,
+      tradeCount: Number(c.tradeCount != null ? c.tradeCount : (c['거래건수'] != null ? c['거래건수'] : 0)),
+      risk: c.risk || c['위험등급'] || getRiskLevel(balance),
+      memo: c.memo || c['관리메모'] || ''
+    };
+  }
+
+  async function loadDashboardData(customersHint) {
+    if (hasApi() && !CONFIG.USE_MOCK) {
+      try {
+        const r = await fetchDashboard();
+        if (r && typeof r === 'object') return { data: r, source: 'live' };
+      } catch (e) {
+        state.lastError = e.message;
+        if (customersHint && customersHint.length) {
+          return { data: computeDashboardFromCustomers(customersHint), source: 'partial' };
+        }
+        if (useMockFallback()) {
+          return { data: computeDashboardFromCustomers(MOCK_CUSTOMERS), source: 'fallback' };
+        }
+        return { data: computeDashboardFromCustomers([]), source: 'error' };
+      }
+    }
+    return {
+      data: computeDashboardFromCustomers(MOCK_CUSTOMERS),
+      source: 'mock'
+    };
+  }
+
+  async function loadCustomerList() {
+    if (hasApi() && !CONFIG.USE_MOCK) {
+      try {
+        const r = await fetchCustomerList();
+        console.log('[api customers] length=', Array.isArray(r) ? r.length : '(not array)', r && r[0] ? Object.keys(r[0]) : []);
+        if (Array.isArray(r)) {
+          const list = r.map(normalizeCustomer);
+          return { data: list, source: 'live' };
+        }
+      } catch (e) {
+        state.lastError = e.message;
+        if (useMockFallback()) {
+          return { data: MOCK_CUSTOMERS.map(normalizeCustomer), source: 'fallback' };
+        }
+        return { data: [], source: 'error' };
+      }
+    }
+    return { data: MOCK_CUSTOMERS.map(normalizeCustomer), source: 'mock' };
+  }
+
+  async function loadCustomerDetail(name) {
+    if (hasApi() && !CONFIG.USE_MOCK) {
+      try {
+        const r = await fetchCustomerDetail(name);
+        if (r && r.customer) {
+          return {
+            data: {
+              customer: normalizeCustomer(r.customer),
+              transactions: Array.isArray(r.transactions) ? r.transactions : []
+            },
+            source: 'live'
+          };
+        }
+      } catch (e) {
+        state.lastError = e.message;
+        // fall through: 메모리 목록 또는 샘플만 사용
+      }
+    }
+    const fromList = (state.customers || []).find(x => x.name === name);
+    if (fromList) {
+      return {
+        data: { customer: normalizeCustomer(fromList), transactions: [] },
+        source: hasApi() && !CONFIG.USE_MOCK ? 'partial' : 'mock'
+      };
+    }
+    if (useMockFallback()) {
+      const mc = MOCK_CUSTOMERS.find(x => x.name === name);
+      if (mc) {
+        return {
+          data: { customer: normalizeCustomer(mc), transactions: getMockTransactions(name) },
+          source: 'fallback'
+        };
+      }
+    }
+    if (!isMockMode()) {
+      return { data: null, source: 'error' };
+    }
+    const mcDemo = MOCK_CUSTOMERS.find(x => x.name === name);
+    if (mcDemo) {
+      return {
+        data: { customer: normalizeCustomer(mcDemo), transactions: getMockTransactions(name) },
+        source: 'mock'
+      };
+    }
+    return { data: null, source: 'mock' };
+  }
+
+  // ─── [5] 포매터 / 유틸 ─────────────────────────────────
+  const wonFmt = new Intl.NumberFormat('ko-KR');
+  function won(n) { return wonFmt.format(Math.round(n || 0)); }
+  function shortWon(n) {
+    const abs = Math.abs(n || 0);
+    if (abs >= 100_000_000) return (n / 100_000_000).toFixed(1).replace(/\.0$/, '') + '억';
+    if (abs >= 10_000)      return (n / 10_000).toFixed(0) + '만';
+    return won(n);
+  }
+  function badgeClass(risk) {
+    switch (risk) {
+      case '매우위험': return 'badge-critical';
+      case '위험':     return 'badge-high';
+      case '주의':     return 'badge-mid';
+      case '관찰':     return 'badge-watch';
+      default:         return 'badge-safe';
+    }
+  }
+  function erpBadge(c) {
+    const raw = String(c?.erp || '').trim();
+    if (!raw) return '';
+    let cls = 'erp-etc';
+    let label = raw;
+    if (raw.includes('경영박사')) {
+      cls = 'erp-ky';
+      label = '경영박사';
+    } else if (raw.includes('이카운트')) {
+      cls = 'erp-ec';
+      label = '이카운트';
+    }
+    return `<span class="erp-badge ${cls}">${escapeHtml(label)}</span>`;
+  }
+  function firstChar(name) { return (name || '?').trim().charAt(0); }
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+  function escapeAttr(s) { return String(s || '').replace(/"/g, '&quot;'); }
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function customerCollectionRate(c) {
+    const sales = Number(c.totalSales || 0);
+    if (sales <= 0) return 0;
+    return Number(c.totalCollection || 0) / sales;
+  }
+
+  function isAggregateTxRow(raw) {
+    const content = String(raw.content || raw.desc || '');
+    const typ = String(raw.type || raw.txType || '');
+    return /월계|합계|누계|소계/.test(content) || /월계|합계|누계|소계/.test(typ);
+  }
+
+  function txSortKeyMs(raw) {
+    const d = raw.date || raw.txDate || '';
+    const s = String(d).trim();
+    if (/^\d{4}[-./]\d{2}[-./]\d{2}/.test(s)) {
+      const t = Date.parse(s.replace(/\./g, '-'));
+      return Number.isFinite(t) ? t : 0;
+    }
+    const parts = s.split(/[./-]/).map(Number);
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      const y = new Date().getFullYear();
+      const dt = new Date(y, parts[0] - 1, parts[1]);
+      return dt.getTime();
+    }
+    return 0;
+  }
+
+  function formatPrintAsOf(d) {
+    const dayName = ['일','월','화','수','목','금','토'][d.getDay()];
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} (${dayName}) ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+
+  function formatYmdKorean(d) {
+    const dayName = ['일','월','화','수','목','금','토'][d.getDay()];
+    return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${dayName})`;
+  }
+
+  function erpLabelForPrint(c) {
+    const raw = String(c?.erp || '').trim();
+    if (!raw) return { label: '', short: '' };
+    if (raw.includes('경영박사')) return { label: '경영박사', short: '경영박사' };
+    if (raw.includes('이카운트')) return { label: '이카운트', short: '이카운트' };
+    return { label: raw, short: raw.length > 10 ? raw.slice(0, 10) + '…' : raw };
+  }
+
+  function erpSpanPrint(c) {
+    const { label, short } = erpLabelForPrint(c);
+    if (!label) return '—';
+    let bg = '#e5e7eb';
+    let bd = '#9ca3af';
+    if (label === '경영박사') { bg = 'rgba(37, 99, 235, 0.12)'; bd = 'rgba(37, 99, 235, 0.35)'; }
+    if (label === '이카운트') { bg = 'rgba(5, 150, 105, 0.12)'; bd = 'rgba(5, 150, 105, 0.35)'; }
+    return `<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:8.5pt;font-weight:700;border:1px solid ${bd};background:${bg};color:#111;">${escapeHtml(short || label)}</span>`;
+  }
+
+  function startOfIsoWeekMonday(d) {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const day = x.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    x.setDate(x.getDate() + diff);
+    x.setHours(0, 0, 0, 0);
+    return x;
+  }
+
+  function endOfIsoWeekSunday(d) {
+    const s = startOfIsoWeekMonday(d);
+    const e = new Date(s);
+    e.setDate(e.getDate() + 6);
+    e.setHours(23, 59, 59, 999);
+    return e;
+  }
+
+  function isInCurrentWeek(dateVal, ref) {
+    if (!dateVal || isNaN(dateVal.getTime())) return false;
+    const s = startOfIsoWeekMonday(ref || new Date());
+    const e = endOfIsoWeekSunday(ref || new Date());
+    return dateVal.getTime() >= s.getTime() && dateVal.getTime() <= e.getTime();
+  }
+
+  function truncateText(s, max) {
+    const t = String(s || '').trim();
+    if (t.length <= max) return t;
+    return t.slice(0, max - 1) + '…';
+  }
+
+  async function mapPoolLimited(items, limit, fn) {
+    const out = [];
+    for (let i = 0; i < items.length; i += limit) {
+      const chunk = items.slice(i, i + limit);
+      const part = await Promise.all(chunk.map(fn));
+      out.push(...part);
+    }
+    return out;
+  }
+
+  /**
+   * getActions는 거래처별 API만 제공되므로, 상위 관리대상에서 병렬 조회 후 병합한다.
+   */
+  async function gatherMergedActionsForReport(customers, maxCustomers, concurrency) {
+    if (!hasApi() || CONFIG.USE_MOCK || !customers || !customers.length) {
+      return { rows: [], contactRows: [], usedApi: false };
+    }
+    const pool = [...customers]
+      .filter(c => c.balance > 0 && ['매우위험', '위험', '주의'].includes(c.risk))
+      .sort((a, b) => b.balance - a.balance)
+      .slice(0, maxCustomers);
+
+    const usedApi = pool.length > 0;
+    const parts = await mapPoolLimited(pool, concurrency || 6, async (c) => {
+      try {
+        const list = await fetchCustomerActions(c.name);
+        return Array.isArray(list) ? list : [];
+      } catch (e) {
+        return [];
+      }
+    });
+
+    const merged = [];
+    for (let i = 0; i < pool.length; i++) {
+      const nm = pool[i].name;
+      const arr = parts[i] || [];
+      arr.forEach(a => {
+        merged.push({
+          time: a.time || '',
+          customer: a.customer || nm,
+          memo: a.memo || '',
+          manager: a.manager || '',
+          nextDate: a.nextDate || ''
+        });
+      });
+    }
+
+    merged.sort((a, b) => String(b.time).localeCompare(String(a.time)));
+
+    const seenContact = Object.create(null);
+    const contactRows = [];
+    const ref = new Date();
+    for (let i = 0; i < merged.length; i++) {
+      const a = merged[i];
+      const nd = parseActionNextDate(a.nextDate);
+      if (nd && isInCurrentWeek(nd, ref)) {
+        const key = String(a.customer || '').trim();
+        if (key && !seenContact[key]) {
+          seenContact[key] = true;
+          contactRows.push({ ...a, _next: nd });
+        }
+      }
+    }
+    contactRows.sort((x, y) => x._next - y._next);
+
+    return { rows: merged.slice(0, 40), contactRows, usedApi };
+  }
+
+  /** 인앱 리포트 슬롯용 본문 HTML (.report-doc 는 페이지 CSS로 스타일) */
+  function buildWeeklyReportDocHtml(payload) {
+    const d = payload.dashboard;
+    const customers = payload.customers || [];
+    const refDate = payload.refDate || new Date();
+    const dataRefresh = payload.dataRefresh || refDate;
+    const asOfStr = payload.asOfStr || formatYmdKorean(refDate);
+    const refreshStr = formatPrintAsOf(dataRefresh);
+
+    const crit = [...customers].filter(c => c.risk === '매우위험').sort((a, b) => b.balance - a.balance).slice(0, 5);
+    const riskOnly = [...customers].filter(c => c.risk === '위험').sort((a, b) => b.balance - a.balance).slice(0, 10);
+
+    const fallbackContact = [...customers]
+      .filter(c => c.balance > 0 && getDaysFromLastPay(c.lastPayDate) >= 30)
+      .sort((a, b) => getDaysFromLastPay(b.lastPayDate) - getDaysFromLastPay(a.lastPayDate))
+      .slice(0, 12);
+
+    const totalBal = d ? d.totalBalance : customers.reduce((s, c) => s + (c.balance || 0), 0);
+    const riskCnt = d ? d.riskCnt : customers.filter(c => ['매우위험', '위험'].includes(c.risk)).length;
+    const manageCnt = d ? d.manage : customers.filter(c => ['매우위험', '위험', '주의'].includes(c.risk)).length;
+    const over30 = d ? d.over30 : customers.filter(c => getDaysFromLastPay(c.lastPayDate) >= 30).length;
+    let ratePct = d ? (d.collectionRate * 100) : 0;
+    if (!d && customers.length) {
+      const ts = customers.reduce((s, c) => s + (c.totalSales || 0), 0);
+      const tc = customers.reduce((s, c) => s + (c.totalCollection || 0), 0);
+      ratePct = ts > 0 ? (tc / ts) * 100 : 0;
+    }
+
+    function customerTableRows(list, startRank) {
+      if (!list.length) {
+        return `<tr><td colspan="6" class="muted">해당 없음</td></tr>`;
+      }
+      return list.map((c, i) => {
+        const days = getDaysFromLastPay(c.lastPayDate);
+        const dlab = days >= 9999 ? '—' : `D+${days}`;
+        return `<tr>
+          <td class="num">${startRank + i}</td>
+          <td><b>${escapeHtml(c.name)}</b></td>
+          <td class="c">${erpSpanPrint(c)}</td>
+          <td class="num">${won(c.balance)}</td>
+          <td><span class="pill ${c.risk === '매우위험' ? 'p-crit' : 'p-high'}">${escapeHtml(c.risk)}</span></td>
+          <td class="small">${escapeHtml(c.lastPayDate || '—')} · ${dlab}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    const contactFromActions = payload.contactRows || [];
+    const useContactFallback = !!payload.useContactFallback;
+    let contactBlock = '';
+    if (contactFromActions.length) {
+      contactBlock = contactFromActions.map(r => {
+        const nd = r.nextDate ? escapeHtml(r.nextDate) : '—';
+        const match = customers.find(x => String(x.name).trim() === String(r.customer || '').trim());
+        return `<tr>
+          <td><b>${escapeHtml(r.customer)}</b></td>
+          <td class="c">${erpSpanPrint(match || { erp: '' })}</td>
+          <td class="num">${won((match || {}).balance)}</td>
+          <td class="small">다음예정 ${nd}</td>
+        </tr>`;
+      }).join('');
+    } else if (useContactFallback && fallbackContact.length) {
+      contactBlock = fallbackContact.map(c => {
+        const days = getDaysFromLastPay(c.lastPayDate);
+        return `<tr>
+          <td><b>${escapeHtml(c.name)}</b></td>
+          <td class="c">${erpSpanPrint(c)}</td>
+          <td class="num">${won(c.balance)}</td>
+          <td class="small">수금 경과 ${days >= 9999 ? '—' : days + '일'} · 예정일 없음(데모)</td>
+        </tr>`;
+      }).join('');
+    } else {
+      contactBlock = `<tr><td colspan="4" class="muted">이번 주 예정된 연락 일정이 없습니다.</td></tr>`;
+    }
+
+    const actionRows = payload.actionRows || [];
+    let actionsHtml = '';
+    if (actionRows.length) {
+      actionsHtml = actionRows.slice(0, 25).map(a => `<tr>
+        <td class="small">${escapeHtml(a.time)}</td>
+        <td>${escapeHtml(a.customer)}</td>
+        <td>${escapeHtml(truncateText(a.memo, 72))}</td>
+        <td class="small">${escapeHtml(a.manager || '—')}</td>
+        <td class="small">${escapeHtml(a.nextDate || '—')}</td>
+      </tr>`).join('');
+    } else {
+      actionsHtml = `<tr><td colspan="5" class="muted">${payload.actionsNote || '최근 회수 액션 내역이 없습니다.'}</td></tr>`;
+    }
+
+    return `<div class="report-doc">
+  <h1>주간 미수 및 현금흐름 위험관리 리포트</h1>
+  <div class="report-meta">
+    <span><b>기준일</b> ${escapeHtml(asOfStr)}</span>
+    <span><b>데이터 갱신</b> ${escapeHtml(refreshStr)}</span>
+    <span><b>앱</b> ${escapeHtml(APP_VERSION)}</span>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="rk">총 미수잔액</div><div class="rv">${won(totalBal)}원</div></div>
+    <div class="kpi"><div class="rk">위험 거래처 수</div><div class="rv">${riskCnt}<small style="font-size:10pt;font-weight:600">개사</small></div></div>
+    <div class="kpi"><div class="rk">관리대상 거래처 수</div><div class="rv">${manageCnt}<small style="font-size:10pt;font-weight:600">개사</small></div></div>
+    <div class="kpi"><div class="rk">30일 이상 수금 없음</div><div class="rv">${over30}<small style="font-size:10pt;font-weight:600">개사</small></div><div class="rk" style="margin-top:6px">전체 회수율 ${ratePct.toFixed(1)}%</div></div>
+  </div>
+
+  <h2>매우위험 거래처 ${crit.length}개사</h2>
+  <table><thead><tr><th class="num">#</th><th>거래처명</th><th class="c">ERP출처</th><th class="num">미수잔액</th><th>등급</th><th>최근수금</th></tr></thead>
+  <tbody>${customerTableRows(crit, 1)}</tbody></table>
+
+  <h2>위험 거래처 ${riskOnly.length}개사</h2>
+  <table><thead><tr><th class="num">#</th><th>거래처명</th><th class="c">ERP출처</th><th class="num">미수잔액</th><th>등급</th><th>최근수금</th></tr></thead>
+  <tbody>${customerTableRows(riskOnly, 1)}</tbody></table>
+
+  <h2>이번주 연락 필요 거래처</h2>
+  <table><thead><tr><th>거래처명</th><th class="c">ERP출처</th><th class="num">미수잔액</th><th>비고</th></tr></thead>
+  <tbody>${contactBlock}</tbody></table>
+
+  <h2>최근 회수 액션 내역 (ACTION_LOG)</h2>
+  <table><thead><tr><th>일시</th><th>거래처</th><th>조치내용</th><th>담당</th><th>다음예정일</th></tr></thead>
+  <tbody>${actionsHtml}</tbody></table>
+
+  <div class="foot">
+    본 자료는 ERP 거래처원장 및 잔액명세 기반 관리자료입니다. ERP 출처는 거래처 요약의 ERP출처 필드를 표시합니다.<br/>
+    회수 액션은 ACTION_LOG 시트 연동(JSON API getActions)으로 집계되며, 거래처별 API만 제공되므로 리포트 작성 시 관리대상 상위 거래처 위주로 병합합니다.
+  </div>
+</div>`;
+  }
+
+  function mergeDedupeActionRows(a, b) {
+    const seen = new Set();
+    const out = [];
+    [...(a || []), ...(b || [])].forEach(x => {
+      const k = `${x.time}|${x.customer}|${x.memo}`;
+      if (seen.has(k)) return;
+      seen.add(k);
+      out.push(x);
+    });
+    out.sort((p, q) => String(q.time).localeCompare(String(p.time)));
+    return out;
+  }
+
+  function shouldAutoPrintOnReportOpen() {
+    if (window.matchMedia('(pointer: coarse)').matches) return false;
+    if (window.matchMedia('(max-width: 899px)').matches) return false;
+    return true;
+  }
+
+  function enterReportPrintView() {
+    state.currentView = 'report-print';
+    document.body.classList.add('report-view-open');
+    document.body.classList.toggle('detail-open', state.viewBeforeReport === 'detail');
+    document.querySelectorAll('.view').forEach(v => {
+      v.classList.toggle('active', v.dataset.view === 'report-print');
+    });
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    setDataSourceUI();
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  async function openWeeklyReport() {
+    const customers = state.customers || [];
+    const d = state.dashboard;
+    const refDate = new Date();
+    const dataRefresh = state.lastRefresh || refDate;
+
+    state.viewBeforeReport = state.detailOpen ? 'detail' : state.currentView;
+
+    showAppToast('주간 리포트 준비 중…');
+
+    let actionRows = [];
+    let contactRows = [];
+    let actionsNote = '';
+    const apiPull = hasApi() && !CONFIG.USE_MOCK;
+
+    if (apiPull) {
+      const { rows, contactRows: cr, usedApi } = await gatherMergedActionsForReport(customers, 28, 6);
+      actionRows = rows;
+      contactRows = cr || [];
+      if (!usedApi) actionsNote = '관리대상 거래처가 없어 액션을 조회하지 않았습니다.';
+      else if (!rows.length) actionsNote = 'ACTION_LOG에 저장된 최근 액션이 없습니다.';
+    } else {
+      actionsNote = 'API 미연결·데모 모드에서는 ACTION_LOG(getActions)를 불러오지 않습니다.';
+    }
+
+    if (apiPull && state.selected && (state.detailActions || []).length) {
+      const extra = state.detailActions.map(a => ({
+        time: a.time || '',
+        customer: a.customer || state.selected,
+        memo: a.memo || '',
+        manager: a.manager || '',
+        nextDate: a.nextDate || ''
+      }));
+      actionRows = mergeDedupeActionRows(actionRows, extra).slice(0, 40);
+    }
+
+    const html = buildWeeklyReportDocHtml({
+      dashboard: d,
+      customers,
+      refDate,
+      dataRefresh,
+      asOfStr: formatYmdKorean(refDate),
+      actionRows,
+      contactRows,
+      useContactFallback: !apiPull,
+      actionsNote
+    });
+
+    const slot = document.getElementById('report-print-slot');
+    if (slot) slot.innerHTML = html;
+
+    historySync = false;
+    try {
+      history.pushState({ view: 'report-print' }, '', '#report-print');
+    } catch (err) {}
+    finally {
+      historySync = true;
+    }
+
+    enterReportPrintView();
+
+    if (shouldAutoPrintOnReportOpen()) {
+      setTimeout(() => {
+        try {
+          window.print();
+        } catch (e) {}
+      }, 450);
+    }
+  }
+
+  // ─── [6] State ────────────────────────────────────────
+  const state = {
+    dashboard: null,
+    customers: [],
+    selected: null,
+    detail: null,
+    currentView: 'dashboard',
+    detailOpen: false,
+    tabBeforeDetail: 'risk',
+    loading: false,
+    lastRefresh: null,
+    dataSource: 'mock',     // 'live' | 'partial' | 'fallback' | 'mock' | 'error'
+    lastError: null,
+    /** 목록 모드: recovery | riskHigh | over30 | manage */
+    riskFilter: 'manage',
+    /** 상세 — 회수 액션 로그 (getActions) */
+    detailActions: [],
+    /** 리포트 진입 직전 화면 (detail 유지용) */
+    viewBeforeReport: null
+  };
+
+  /** SPA history 동기화 — popstate/초기 replace 시 push 방지 */
+  let historySync = true;
+
+  function buildHashFromState(st) {
+    if (!st || !st.view) return '#dashboard';
+    if (st.view === 'detail' && st.customer) {
+      let h = '#detail?name=' + encodeURIComponent(st.customer);
+      const tb = st.tabBefore || 'risk';
+      if (tb && tb !== 'risk') h += '&tab=' + encodeURIComponent(tb);
+      return h;
+    }
+    if (st.view === 'report-print') return '#report-print';
+    return '#' + st.view;
+  }
+
+  function parseRouteFromLocation() {
+    const raw = (location.hash || '').replace(/^#/, '');
+    if (!raw) return { view: 'dashboard' };
+    const qIdx = raw.indexOf('?');
+    const path = qIdx === -1 ? raw : raw.slice(0, qIdx);
+    const qs = qIdx === -1 ? '' : raw.slice(qIdx + 1);
+    if (path === 'detail') {
+      const params = new URLSearchParams(qs);
+      const name = params.get('name');
+      if (!name) return { view: 'dashboard' };
+      return {
+        view: 'detail',
+        customer: decodeURIComponent(String(name).replace(/\+/g, ' ')),
+        tabBefore: params.get('tab') || 'risk'
+      };
+    }
+    if (path === 'risk') return { view: 'risk', riskFilter: state.riskFilter };
+    if (path === 'search') return { view: 'search' };
+    if (path === 'dashboard') return { view: 'dashboard' };
+    if (path === 'report-print') return { view: 'report-print' };
+    return { view: 'dashboard' };
+  }
+
+  function normalizeInitialHistoryState(route) {
+    if (!route || !route.view) return { view: 'dashboard' };
+    if (route.view === 'detail' && route.customer) {
+      return {
+        view: 'detail',
+        customer: route.customer,
+        tabBefore: route.tabBefore || 'risk'
+      };
+    }
+    if (route.view === 'risk') {
+      return {
+        view: 'risk',
+        riskFilter: route.riskFilter != null ? route.riskFilter : state.riskFilter
+      };
+    }
+    if (route.view === 'report-print') return { view: 'dashboard' };
+    return { view: route.view };
+  }
+
+  function setDataSourceUI() {
+    const cls = ['ds-live','ds-partial','ds-fallback','ds-mock','ds-error'];
+    cls.forEach(c => document.body.classList.remove(c));
+    document.body.classList.add('ds-' + state.dataSource);
+    document.body.classList.toggle('has-api', hasApi());
+    document.body.classList.toggle('dashboard-mode', state.currentView === 'dashboard');
+  }
+
+  // 위험도 점수 (0~100) — Code.gs 임계값 매핑
+  function riskScore(balance) {
+    if (!balance || balance <= 0) return 0;
+    const T = [0, 3_000_000, 10_000_000, 30_000_000, 60_000_000];
+    for (let i = 1; i < T.length; i++) {
+      if (balance <= T[i]) {
+        const lo = T[i-1], hi = T[i], loS = (i-1)*25, hiS = i*25;
+        return Math.round(loS + ((balance - lo) / (hi - lo)) * (hiS - loS));
+      }
+    }
+    return 100;
+  }
+
+  // 즉시관리 필요 판정
+  function isImmediate(c, days) {
+    if (c.risk === '매우위험') return true;
+    if (c.risk === '위험' && days >= 30) return true;
+    if (days >= 90 && c.balance > 0) return true;
+    return false;
+  }
+
+  // 회수 우선순위 (잔액 큰 순)
+  function recoveryPriority(name) {
+    const sorted = [...state.customers]
+      .filter(c => c.balance > 0)
+      .sort((a, b) => b.balance - a.balance);
+    const idx = sorted.findIndex(c => c.name === name);
+    return { rank: idx >= 0 ? idx + 1 : null, total: sorted.length };
+  }
+
+  // ─── [7] Skeleton templates ────────────────────────────
+  function skeletonHero() {
+    return `
+      <div class="hero">
+        <div class="sk-stack">
+          <div class="skeleton sk-line sk-w-40"></div>
+          <div class="skeleton sk-line xl sk-w-70"></div>
+        </div>
+        <div class="row">
+          <div class="mini"><div class="skeleton sk-line sk-w-50"></div><div style="height:6px;"></div><div class="skeleton sk-line lg sk-w-70"></div></div>
+          <div class="mini"><div class="skeleton sk-line sk-w-50"></div><div style="height:6px;"></div><div class="skeleton sk-line lg sk-w-70"></div></div>
+        </div>
+      </div>`;
+  }
+  function skeletonKPI() {
+    const card = `<div class="kpi"><div class="skeleton sk-line" style="width:30px;height:30px;border-radius:9px;margin-bottom:10px;"></div>
+      <div class="skeleton sk-line sk-w-50"></div><div style="height:6px;"></div>
+      <div class="skeleton sk-line lg sk-w-70"></div></div>`;
+    return `<div class="kpi-grid">${card.repeat(4)}</div>`;
+  }
+  function skeletonList(rows = 5) {
+    const row = `
+      <div class="sk-row">
+        <div class="skeleton sk-avatar"></div>
+        <div class="sk-stack">
+          <div class="skeleton sk-line sk-w-70"></div>
+          <div class="skeleton sk-line sk-w-50"></div>
+        </div>
+        <div class="skeleton sk-line lg" style="width:64px;"></div>
+      </div>`;
+    return `<div class="card"><div class="risk-list">${row.repeat(rows)}</div></div>`;
+  }
+  function skeletonDetail() {
+    return `
+      <div class="detail-card">
+        <div class="detail-head">
+          <div class="skeleton" style="width:44px;height:44px;border-radius:13px;"></div>
+          <div class="name sk-stack" style="flex:1;">
+            <div class="skeleton sk-line sk-w-70"></div>
+            <div class="skeleton sk-line sk-w-50"></div>
+          </div>
+        </div>
+        <div class="detail-balance">
+          <div class="skeleton sk-line sk-w-40"></div><div style="height:8px;"></div>
+          <div class="skeleton sk-line xl sk-w-70"></div>
+        </div>
+        <div class="detail-stats">
+          ${'<div class="s"><div class="skeleton sk-line sk-w-50"></div><div style="height:6px;"></div><div class="skeleton sk-line lg sk-w-70"></div></div>'.repeat(4)}
+        </div>
+      </div>`;
+  }
+  function skeletonTx(rows = 4) {
+    const row = `
+      <div class="sk-row">
+        <div class="skeleton" style="width:32px;height:32px;border-radius:10px;"></div>
+        <div class="sk-stack">
+          <div class="skeleton sk-line sk-w-70"></div>
+          <div class="skeleton sk-line sk-w-40"></div>
+        </div>
+        <div class="skeleton sk-line lg" style="width:60px;"></div>
+      </div>`;
+    return `<div class="tx-list">${row.repeat(rows)}</div>`;
+  }
+
+  // ─── [8] Empty states ──────────────────────────────────
+  function emptyState({ title, sub, ico }) {
+    return `
+      <div class="empty-state">
+        <div class="ico">${ico || dotIcon()}</div>
+        <div class="ttl">${title}</div>
+        <div class="sub">${sub || ''}</div>
+      </div>`;
+  }
+  function dotIcon() {
+    return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="4" width="16" height="16" rx="3"/><line x1="9" y1="12" x2="15" y2="12"/></svg>`;
+  }
+
+  // ─── [9] Render: 대시보드 ──────────────────────────────
+  function renderDashboardView() {
+    const d = state.dashboard;
+    const customers = state.customers;
+
+    // Topbar 상태 라인 — 오늘 날짜 + 마지막 갱신 시각
+    const now = state.lastRefresh || new Date();
+    const dayName = ['일','월','화','수','목','금','토'][now.getDay()];
+    const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${dayName})`;
+    const rTime = state.lastRefresh
+      ? `${state.lastRefresh.getHours()}:${String(state.lastRefresh.getMinutes()).padStart(2,'0')} 갱신`
+      : '실시간';
+    const dataLine =
+      state.dataSource === 'live' || state.dataSource === 'partial'
+        ? '실시간 데이터'
+        : state.dataSource === 'error'
+        ? 'API 실패 · 데이터 없음'
+        : state.dataSource === 'fallback'
+        ? '샘플 데이터 (API 실패)'
+        : '데모 데이터';
+    document.getElementById('topbar-sub').textContent = `${dateStr} · ${rTime} · ${dataLine}`;
+    document.getElementById('dashboard-asof').textContent = rTime;
+
+    if (!d) {
+      document.getElementById('hero-slot').innerHTML = skeletonHero();
+      document.getElementById('kpi-slot').innerHTML = skeletonKPI();
+      const allRisk = customers.filter(c => ['매우위험','위험','주의'].includes(c.risk)).length;
+      const over30 = customers.filter(c => (c.balance || 0) > 0 && getDaysFromLastPay(c.lastPayDate) >= 30).length;
+      document.getElementById('go-risk-count').textContent = `${allRisk}개사`;
+      document.getElementById('go-over30-count').textContent = `${over30}개사`;
+      // 대시보드 데이터 없어도 거래처 데이터가 있으면 리스트 표시
+      renderReceivableAllSection('');
+      return;
+    }
+
+    document.getElementById('hero-slot').innerHTML = `
+      <div class="hero">
+        <div class="label">총 미수잔액
+          ${d.totalBalance > 0
+            ? `<span class="badge">관리 필요</span>`
+            : `<span class="badge" style="background:rgba(16,185,129,0.18);border-color:rgba(16,185,129,0.35);color:#86efac;">정상</span>`}
+        </div>
+        <div class="value">${won(d.totalBalance)}<small>원</small></div>
+        <div class="row">
+          <div class="mini"><div class="k">총 판매</div><div class="v">${won(d.totalSales)}원</div></div>
+          <div class="mini"><div class="k">총 수금</div><div class="v green">${won(d.totalCollect)}원</div></div>
+        </div>
+      </div>`;
+
+    const rate = (d.collectionRate * 100);
+    const gap  = (rate - 85).toFixed(1);
+
+    // over30/over60: API 값이 0이거나 신뢰 불가능할 경우 state.customers로 직접 계산
+    // (Code.gs의 Date 객체 파싱 버그로 인해 API over30=0이 될 수 있음)
+    const _balCust = (customers || []).filter(c => (c.balance || 0) > 0);
+    const _over30Computed = _balCust.filter(c => {
+      const s = String(c.lastPayDate || '').trim();
+      if (!s || s === '-') return false;
+      return getDaysFromLastPay(c.lastPayDate) >= 30;
+    }).length;
+    const _over60Computed = _balCust.filter(c => {
+      const s = String(c.lastPayDate || '').trim();
+      if (!s || s === '-') return false;
+      return getDaysFromLastPay(c.lastPayDate) >= 60;
+    }).length;
+    // API 값과 클라이언트 계산값 중 큰 값 사용 (더 신뢰할 수 있는 값)
+    const over30Display = Math.max(d.over30 || 0, _over30Computed);
+    const over60Display = Math.max(d.over60 || 0, _over60Computed);
+    console.log('[over30 render] api=', d.over30, 'computed=', _over30Computed, 'display=', over30Display);
+
+    document.getElementById('kpi-slot').innerHTML = `
+      <div class="kpi-grid">
+        <div class="kpi gr" data-kpi-nav="recovery" role="button" tabindex="0">
+          <div class="icon">%</div>
+          <div class="label">전체 회수율</div>
+          <div class="value">${rate.toFixed(1)}%</div>
+          <div class="delta">${rate >= 85 ? '목표 85% 달성' : `목표 85% 대비 ${gap}%p`}</div>
+          <span class="kpi-link">보기 ›</span>
+        </div>
+        <div class="kpi red" data-kpi-nav="riskHigh" role="button" tabindex="0">
+          <div class="icon">!</div>
+          <div class="label">위험 거래처 수</div>
+          <div class="value">${d.riskCnt}<small>개사</small></div>
+          <div class="delta">매우위험 ${d.critical} · 위험 ${d.high}</div>
+          <span class="kpi-link">보기 ›</span>
+        </div>
+        <div class="kpi org" data-kpi-nav="over30" role="button" tabindex="0">
+          <div class="icon">⏱</div>
+          <div class="label">30일 이상 수금 없음</div>
+          <div class="value">${over30Display}<small>개사</small></div>
+          <div class="delta">60일 이상 ${over60Display}개사</div>
+          <span class="kpi-link">보기 ›</span>
+        </div>
+        <div class="kpi cy" data-kpi-nav="manage" role="button" tabindex="0">
+          <div class="icon">⚑</div>
+          <div class="label">관리대상 거래처</div>
+          <div class="value">${d.manage}<small>개사</small></div>
+          <div class="delta">주의 이상 합계</div>
+          <span class="kpi-link">보기 ›</span>
+        </div>
+      </div>`;
+
+    const allRisk = customers.filter(c => ['매우위험','위험','주의'].includes(c.risk)).length;
+    // balance>0 필터 추가 + lastPayDate 있는 경우만
+    const over30 = customers.filter(c => (c.balance || 0) > 0 && getDaysFromLastPay(c.lastPayDate) >= 30).length;
+    document.getElementById('go-risk-count').textContent = `${allRisk}개사`;
+    document.getElementById('go-over30-count').textContent = `${over30}개사`;
+    const goRisk = document.getElementById('go-risk-list');
+    const goOver30 = document.getElementById('go-over30-list');
+    if (goRisk && !goRisk.dataset.bound) {
+      goRisk.dataset.bound = '1';
+      goRisk.addEventListener('click', () => {
+        state.riskFilter = 'manage';
+        renderRiskView();
+        switchView('risk');
+      });
+    }
+    if (goOver30 && !goOver30.dataset.bound) {
+      goOver30.dataset.bound = '1';
+      goOver30.addEventListener('click', () => {
+        state.riskFilter = 'over30';
+        renderRiskView();
+        switchView('risk');
+      });
+    }
+    // 위험거래처 탭 배지
+    updateRiskBadge(d.riskCnt);
+
+    // 미수잔액 전체 리스트
+    renderReceivableAllSection('');
+  }
+
+  // ─── 미수잔액 전체 리스트 렌더 ────────────────────────
+  function renderReceivableAllSection(query) {
+    const slot      = document.getElementById('recv-all-slot');
+    const countEl   = document.getElementById('recv-all-count');
+    if (!slot) return;
+
+    const customers = state.customers;
+    console.log('[receivableAll] source rows length=', customers ? customers.length : 0);
+    console.log('[receivableAll] first row keys=', customers && customers[0] ? Object.keys(customers[0]) : []);
+    if (!customers || customers.length === 0) {
+      slot.innerHTML = `<div style="padding:20px 0;text-align:center;color:var(--text-mute);font-size:13px;">미수잔액 데이터가 없습니다.</div>`;
+      if (countEl) countEl.textContent = '';
+      return;
+    }
+
+    // 미수잔액 > 0 인 거래처만, 잔액 내림차순
+    const filtered = [...customers].filter(c => (c.balance || 0) > 0).sort((a, b) => b.balance - a.balance);
+    console.log('[receivableAll] filtered balance rows length=', filtered.length);
+    let list = filtered;
+
+    // 검색 필터
+    const q = (query || '').trim().toLowerCase();
+    if (q) list = list.filter(c => c.name.toLowerCase().includes(q));
+
+    if (countEl) countEl.textContent = q
+      ? `${list.length}건`
+      : `${list.length}개사`;
+
+    if (list.length === 0) {
+      slot.innerHTML = q
+        ? `<div style="padding:20px 0;text-align:center;color:var(--text-mute);font-size:13px;">"${escapeHtml(query)}" 검색 결과가 없습니다.</div>`
+        : `<div style="padding:20px 0;text-align:center;color:var(--text-mute);font-size:13px;">미수잔액 데이터가 없습니다.</div>`;
+      return;
+    }
+
+    slot.innerHTML = list.map((c, idx) => {
+      const rank  = idx + 1;
+      const rankCls = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
+      const days  = getDaysFromLastPay(c.lastPayDate);
+      const daysTxt = days >= 9999 ? '수금이력 없음' : `${days}일 경과`;
+      const daysCls = days >= 90 ? 'd-urgent' : days >= 60 ? 'd-danger' : days >= 30 ? 'd-warn' : '';
+      const eb    = erpBadge(c);
+      const memo  = (c.memo || '').trim();
+
+      return `
+        <div class="recv-row">
+          <div class="recv-rank ${rankCls}">${rank}</div>
+          <div class="recv-info">
+            ${eb ? `<div style="margin-bottom:3px;">${eb}</div>` : ''}
+            <div class="recv-name" data-name="${escapeAttr(c.name)}">${escapeHtml(c.name)}</div>
+            <div class="recv-meta">
+              <span class="m-item"><span class="m-label">최근수금</span>${escapeHtml(c.lastPayDate || '-')}</span>
+              <span class="m-item"><span class="m-label">위험등급</span><span class="badge ${badgeClass(c.risk)}" style="font-size:9px;padding:1px 6px;">${escapeHtml(c.risk)}</span></span>
+            </div>
+            ${memo ? `<div class="recv-memo">${escapeHtml(memo)}</div>` : ''}
+            <div class="recv-status-btns" aria-label="대표 판단 상태 (저장 미적용)">
+              <span class="recv-status-btn st-manage">관리필요</span>
+              <span class="recv-status-btn st-normal">정상거래</span>
+              <span class="recv-status-btn st-pending">계약상 보류</span>
+              <span class="recv-status-btn st-check">확인필요</span>
+            </div>
+          </div>
+          <div class="recv-right">
+            <div class="recv-bal">${won(c.balance)}원</div>
+            <div class="recv-days ${daysCls}">${daysTxt}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // 거래처명 클릭 → 상세 이동
+    slot.querySelectorAll('.recv-name[data-name]').forEach(el => {
+      el.addEventListener('click', () => selectCustomer(el.dataset.name));
+    });
+  }
+
+  // 검색 이벤트
+  (function bindRecvAllSearch() {
+    const inp = document.getElementById('recv-all-search');
+    if (!inp) return;
+    inp.addEventListener('input', e => renderReceivableAllSection(e.target.value));
+  })();
+
+  function riskRow(c, rank) {
+    const days = getDaysFromLastPay(c.lastPayDate);
+    const rankCls = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
+    const eb = erpBadge(c);
+    return `
+      <div class="risk-row" data-name="${escapeAttr(c.name)}">
+        <div class="rank ${rankCls}">${rank}</div>
+        <div class="info">
+          ${eb ? `<div style="margin-bottom:3px;">${eb}</div>` : ''}
+          <div class="name">${c.name}</div>
+          <div class="meta">
+            <span>최근수금 ${c.lastPayDate || '-'}</span>
+            <span class="dot"></span>
+            <span>${days >= 9999 ? '수금 이력 없음' : days + '일 경과'}</span>
+          </div>
+        </div>
+        <div class="amount">
+          <div class="val">${shortWon(c.balance)}원</div>
+          <span class="badge ${badgeClass(c.risk)}">${c.risk}</span>
+        </div>
+      </div>`;
+  }
+
+  function recoveryRow(c, rank) {
+    const rate = customerCollectionRate(c) * 100;
+    const rankCls = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
+    const eb = erpBadge(c);
+    return `
+      <div class="risk-row" data-name="${escapeAttr(c.name)}">
+        <div class="rank ${rankCls}">${rank}</div>
+        <div class="info">
+          ${eb ? `<div style="margin-bottom:3px;">${eb}</div>` : ''}
+          <div class="name">${c.name}</div>
+          <div class="meta">
+            <span>회수율 ${rate.toFixed(1)}%</span>
+            <span class="dot"></span>
+            <span>미수 ${shortWon(c.balance)}원</span>
+          </div>
+        </div>
+        <div class="amount">
+          <div class="val">${shortWon(c.balance)}원</div>
+          <span class="badge ${badgeClass(c.risk)}">${c.risk}</span>
+        </div>
+      </div>`;
+  }
+
+  function bindRowClicks(scope) {
+    scope.querySelectorAll('.risk-row[data-name]').forEach(el => {
+      el.addEventListener('click', () => selectCustomer(el.dataset.name));
+    });
+  }
+
+  const RISK_LIST_TITLES = {
+    recovery: '회수율 관리 대상',
+    riskHigh: '위험 거래처',
+    over30: '30일 이상 수금 없음',
+    manage: '관리대상 거래처'
+  };
+
+  // ─── [10] Render: 목록 (KPI·위험탭) ───────────────────
+  function renderRiskView() {
+    const slot = document.getElementById('risk-slot');
+    const headEl = document.getElementById('risk-print-head');
+    const customers = state.customers;
+    const mode = state.riskFilter;
+
+    if (!customers || customers.length === 0) {
+      slot.innerHTML = skeletonList(6);
+      document.getElementById('risk-count').textContent = '';
+      if (headEl) headEl.innerHTML = '';
+      return;
+    }
+
+    const title = RISK_LIST_TITLES[mode] || '거래처 목록';
+    const h = document.getElementById('risk-heading');
+    if (h) h.textContent = title;
+
+    const asof = state.lastRefresh || new Date();
+    if (headEl) {
+      headEl.innerHTML = `<strong>${title}</strong>${formatPrintAsOf(asof)} · ${customers.length}개사 기준`;
+    }
+
+    if (mode === 'recovery') {
+      const list = [...customers]
+        .filter(c => c.balance > 0)
+        .sort((a, b) => {
+          const ra = customerCollectionRate(a);
+          const rb = customerCollectionRate(b);
+          if (ra !== rb) return ra - rb;
+          return b.balance - a.balance;
+        });
+      document.getElementById('risk-count').textContent = `${list.length}개사`;
+      if (list.length === 0) {
+        slot.innerHTML = `<div class="card">${emptyState({
+          title: '회수율 관리 대상이 없습니다',
+          sub: '미수 잔액이 있는 거래처가 없습니다.'
+        })}</div>`;
+        if (state.dashboard) updateRiskBadge(state.dashboard.riskCnt);
+        return;
+      }
+      let rank = 0;
+      slot.innerHTML = `<div class="card"><div class="risk-list">${list.map(c => {
+        rank++;
+        return recoveryRow(c, rank);
+      }).join('')}</div></div>`;
+      bindRowClicks(slot);
+      if (state.dashboard) updateRiskBadge(state.dashboard.riskCnt);
+      return;
+    }
+
+    let riskPool;
+    if (mode === 'over30') {
+      riskPool = customers.filter(c => getDaysFromLastPay(c.lastPayDate) >= 30 && c.balance > 0);
+    } else if (mode === 'riskHigh') {
+      riskPool = customers.filter(c => ['매우위험', '위험'].includes(c.risk));
+    } else {
+      riskPool = customers.filter(c => ['매우위험', '위험', '주의'].includes(c.risk));
+    }
+
+    const groupKeys = mode === 'over30'
+      ? ['매우위험', '위험', '주의', '관찰', '정상']
+      : mode === 'riskHigh'
+      ? ['매우위험', '위험']
+      : ['매우위험', '위험', '주의'];
+
+    const groups = groupKeys.map(key => ({
+      key,
+      list: riskPool.filter(c => c.risk === key)
+    }));
+    groups.forEach(g => g.list.sort((a, b) => b.balance - a.balance));
+    const total = groups.reduce((s, g) => s + g.list.length, 0);
+    document.getElementById('risk-count').textContent =
+      mode === 'over30' ? `30일+ ${total}개사` : `${total}개사`;
+
+    if (total === 0) {
+      const empty =
+        mode === 'over30'
+          ? { title: '30일 이상 수금 없음 거래처가 없습니다', sub: '해당 조건의 거래처가 없습니다.' }
+          : mode === 'riskHigh'
+          ? { title: '위험 거래처가 없습니다', sub: '매우위험·위험 등급 거래처가 없습니다.' }
+          : { title: '관리대상 거래처가 없습니다', sub: '매우위험·위험·주의 등급 거래처가 없습니다.' };
+      slot.innerHTML = `<div class="card">${emptyState(empty)}</div>`;
+      if (state.dashboard) updateRiskBadge(state.dashboard.riskCnt);
+      return;
+    }
+
+    let html = '';
+    let rank = 0;
+    groups.forEach(g => {
+      if (g.list.length === 0) return;
+      html += `<div class="group-label"><span class="badge ${badgeClass(g.key)}">${g.key}</span><span>${g.list.length}개사</span></div>`;
+      html += `<div class="card"><div class="risk-list">`;
+      g.list.forEach(c => { rank++; html += riskRow(c, rank); });
+      html += `</div></div>`;
+    });
+    slot.innerHTML = html;
+    bindRowClicks(slot);
+    if (state.dashboard) updateRiskBadge(state.dashboard.riskCnt);
+  }
+
+  function updateRiskBadge(n) {
+    const b = document.getElementById('tab-risk-badge');
+    if (!b) return;
+    if (n > 0) { b.textContent = n > 99 ? '99+' : String(n); b.style.display = 'grid'; }
+    else { b.style.display = 'none'; }
+  }
+
+  // ─── [11] Render: 검색 ─────────────────────────────────
+  const searchInput = document.getElementById('search-input');
+  const searchSlot  = document.getElementById('search-slot');
+  const searchCount = document.getElementById('search-count');
+
+  function renderSearchResults(q) {
+    const customers = state.customers;
+    if (!customers || customers.length === 0) {
+      searchSlot.innerHTML = skeletonList(4);
+      return;
+    }
+    const query = (q || '').trim().toLowerCase();
+    if (!query) {
+      searchSlot.innerHTML = `<div class="card">${emptyState({
+        title: '거래처명을 입력하세요',
+        sub: '이름 일부만 입력해도 검색됩니다.'
+      })}</div>`;
+      searchCount.textContent = '';
+      return;
+    }
+    const matches = customers.filter(c => c.name.toLowerCase().includes(query));
+    searchCount.textContent = `${matches.length}건`;
+    if (matches.length === 0) {
+      searchSlot.innerHTML = `<div class="card">${emptyState({
+        title: '검색 결과가 없습니다',
+        sub: `"${q}"와 일치하는 거래처를 찾지 못했습니다.`
+      })}</div>`;
+      return;
+    }
+    searchSlot.innerHTML = `
+      <div class="card">
+        <div class="search-results" style="margin-top:0;background:transparent;border:0;">
+          ${matches.slice(0, 30).map(c => {
+            const eb = erpBadge(c);
+            return `
+            <div class="item" data-name="${escapeAttr(c.name)}">
+              <div style="min-width:0;">
+                ${eb ? `<div style="margin-bottom:3px;">${eb}</div>` : ''}
+                <div style="font-size:13px;font-weight:600;letter-spacing:-0.1px;">${c.name}</div>
+                <div style="font-size:11px;color:var(--text-mute);margin-top:2px;">잔액 ${shortWon(c.balance)}원 · 최근수금 ${c.lastPayDate || '-'}</div>
+              </div>
+              <span class="badge ${badgeClass(c.risk)}" style="font-size:10px;padding:3px 8px;border-radius:999px;font-weight:700;flex-shrink:0;">${c.risk}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    searchSlot.querySelectorAll('.item').forEach(el => {
+      el.addEventListener('click', () => selectCustomer(el.dataset.name));
+    });
+  }
+
+  searchInput.addEventListener('input', e => renderSearchResults(e.target.value));
+
+  function collectionContactTier(days) {
+    if (days >= 9999) return { label: '수금일 불명', fillCls: 'fill-tier-unknown', barCls: 'unknown' };
+    if (days >= 90) return { label: '즉시관리', fillCls: 'fill-tier-urgent', barCls: 'urgent' };
+    if (days >= 60) return { label: '위험', fillCls: 'fill-tier-danger', barCls: 'danger' };
+    if (days >= 30) return { label: '주의', fillCls: 'fill-tier-warn', barCls: 'warn' };
+    return { label: '모니터링', fillCls: 'fill-tier-ok', barCls: 'ok' };
+  }
+
+  function todayStart() {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function parseActionNextDate(s) {
+    if (!s) return null;
+    const t = String(s).trim();
+    const m = t.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    const d = new Date(t);
+    if (isNaN(d.getTime())) return null;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  function needsContactTodayFromActions(actions) {
+    if (!actions || !actions.length) return false;
+    const nd = parseActionNextDate(actions[0].nextDate);
+    if (!nd) return false;
+    return nd.getTime() <= todayStart().getTime();
+  }
+
+  function showAppToast(msg) {
+    let el = document.getElementById('app-toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'app-toast';
+      el.className = 'app-toast';
+      el.setAttribute('aria-live', 'polite');
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.classList.add('visible');
+    clearTimeout(showAppToast._t);
+    showAppToast._t = setTimeout(() => { el.classList.remove('visible'); }, 2800);
+  }
+
+  // ─── [12] Render: 상세 + 거래내역 ──────────────────────
+  function renderDetailView() {
+    const detail = state.detail;
+    const slot = document.getElementById('detail-slot');
+    const txSlot = document.getElementById('tx-slot');
+    const hint = document.getElementById('detail-name-hint');
+    const txCount = document.getElementById('tx-count');
+    const dph = document.getElementById('detail-print-head');
+
+    if (state.loading && state.selected) {
+      slot.innerHTML = skeletonDetail();
+      txSlot.innerHTML = skeletonTx(4);
+      hint.textContent = state.selected;
+      txCount.textContent = '';
+      return;
+    }
+
+    if (!detail || !detail.customer) {
+      hint.textContent = '선택된 거래처 없음';
+      if (dph) dph.innerHTML = '';
+      slot.innerHTML = `<div class="card">${emptyState({
+        title: '거래처를 선택해 주세요',
+        sub: '위험거래처 · 거래처검색에서 거래처를 탭하면 상세가 표시됩니다.'
+      })}</div>`;
+      txSlot.innerHTML = emptyState({
+        title: '최근 거래내역 없음',
+        sub: '거래처를 먼저 선택해 주세요.'
+      });
+      txCount.textContent = '';
+      return;
+    }
+
+    const c = detail.customer;
+    const days = getDaysFromLastPay(c.lastPayDate);
+    const collectionRate = c.totalSales > 0 ? (c.totalCollection / c.totalSales) : 0;
+    const score = riskScore(c.balance);
+    const urgent = isImmediate(c, days);
+    const prio = recoveryPriority(c.name);
+    const tier = collectionContactTier(days);
+    const actions = state.detailActions || [];
+    const needToday = needsContactTodayFromActions(actions);
+    const canCrm = hasApi() && !CONFIG.USE_MOCK;
+    const actionListHtml = actions.length === 0
+      ? '<div class="action-log-empty">저장된 회수 액션이 없습니다.</div>'
+      : actions.map(a => {
+          const meta = [];
+          if (a.manager) meta.push('담당: ' + escapeHtml(a.manager));
+          if (a.nextDate) meta.push('다음예정: ' + escapeHtml(a.nextDate));
+          return `
+        <div class="action-log-item">
+          <div class="action-log-date">${escapeHtml(a.time)}</div>
+          <div class="action-log-memo">${escapeHtml(a.memo)}</div>
+          ${meta.length ? `<div class="action-log-meta">${meta.join(' · ')}</div>` : ''}
+        </div>`;
+        }).join('');
+
+    let alertHtml = '';
+    if (days >= 60)      alertHtml = `<div class="detail-alert"><span class="alert-ico">●</span> 60일 이상 수금 없음 — 즉시 연락 필요</div>`;
+    else if (days >= 30) alertHtml = `<div class="detail-alert warn"><span class="alert-ico">●</span> 30일 이상 수금 없음 — 입금 확인 필요</div>`;
+    else if (days >= 14) alertHtml = `<div class="detail-alert warn"><span class="alert-ico">●</span> 14일 이상 수금 없음 — 경과 모니터링</div>`;
+    else if (c.balance === 0) alertHtml = `<div class="detail-alert ok"><span class="alert-ico">●</span> 잔액 클리어 — 정상 거래중</div>`;
+    else alertHtml = `<div class="detail-alert ok"><span class="alert-ico">●</span> 최근 ${days}일 이내 수금 — 정상</div>`;
+
+    const daysCls = days >= 60 ? 'days-critical'
+                  : days >= 30 ? 'days-danger'
+                  : days >= 14 ? 'days-warn'
+                  : '';
+    const prioCls = prio.rank === 1 ? 'top1' : '';
+    const daysDisplay = days >= 9999 ? '-' : days;
+    const urgentLabel = c.risk === '매우위험'
+      ? '대표 직접 관리 권고'
+      : (days >= 90 ? '90일 이상 미수금 발생' : '회수 행동 필요');
+
+    hint.textContent = c.name;
+    if (dph) {
+      const asof = state.lastRefresh || new Date();
+      dph.innerHTML = `<strong>${c.name}</strong>미수 ${won(c.balance)}원 · ${c.risk} · 최근수금 ${c.lastPayDate || '-'} · ${formatPrintAsOf(asof)}`;
+    }
+
+    slot.innerHTML = `
+      <div class="detail-card flash">
+        <div class="detail-head">
+          <div class="avatar">${firstChar(c.name)}</div>
+          <div class="name">
+            ${erpBadge(c) ? `<div style="margin-bottom:4px;">${erpBadge(c)}</div>` : ''}
+            <div class="n">${c.name}</div>
+            <div class="s">거래 ${c.tradeCount}회 · 최근수금 ${c.lastPayDate || '-'} ${days >= 9999 ? '' : `(${days}일 경과)`}</div>
+          </div>
+          <span class="badge ${badgeClass(c.risk)}" style="padding:5px 10px;border-radius:999px;font-size:11px;font-weight:700;flex-shrink:0;">${c.risk}</span>
+        </div>
+
+        <div class="detail-contact-bar">
+          <div class="dcb-main">
+            <span class="dcb-dplus">마지막 수금 후 <strong>D+${daysDisplay}</strong></span>
+            <span class="dcb-chip tier-${tier.barCls}">${tier.label}</span>
+          </div>
+          ${needToday ? '<div class="dcb-today">오늘 연락 필요 · 다음 예정일 도래</div>' : ''}
+        </div>
+
+        ${urgent ? `
+        <div class="urgent-strip">
+          <span class="urgent-dot"></span>
+          즉시 관리 필요 · ${urgentLabel}
+        </div>` : ''}
+
+        <div class="detail-balance">
+          <div class="lbl">
+            <span>현재 미수잔액</span>
+            <span style="color:var(--text-dim);">위험도 ${score}점</span>
+          </div>
+          <div class="val">${won(c.balance)}<span style="font-size:14px;color:var(--text-mute);font-weight:600;margin-left:4px;">원</span></div>
+          <div class="risk-progress">
+            <div class="bar"><div class="fill ${tier.fillCls}" style="width:${score}%;"></div></div>
+            <div class="marks">
+              <span class="${score >= 1 && score < 25 ? 'on' : ''}">관찰</span>
+              <span class="${score >= 25 && score < 50 ? 'on' : ''}">주의</span>
+              <span class="${score >= 50 && score < 75 ? 'on' : ''}">위험</span>
+              <span class="${score >= 75 ? 'on' : ''}">매우위험</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="emphasis-grid">
+          <div class="emp ${daysCls}">
+            <div class="k">최근 수금 경과</div>
+            <div class="v">${daysDisplay}<span>일</span></div>
+            <div class="s">${c.lastPayDate ? `${c.lastPayDate} 입금` : '수금 이력 없음'}</div>
+          </div>
+          <div class="emp prio ${prioCls}">
+            <div class="k">회수 우선순위</div>
+            <div class="v">${prio.rank ? '#' + prio.rank : '-'}<span>${prio.total ? '/ ' + prio.total : ''}</span></div>
+            <div class="s">연락·회수 ${tier.label} · 미수 잔액 순위</div>
+          </div>
+        </div>
+
+        <div class="detail-stats">
+          <div class="s"><div class="k">총 판매</div><div class="v">${shortWon(c.totalSales)}원</div></div>
+          <div class="s"><div class="k">총 수금</div><div class="v">${shortWon(c.totalCollection)}원</div></div>
+          <div class="s"><div class="k">개별 회수율</div><div class="v">${(collectionRate*100).toFixed(1)}%</div></div>
+          <div class="s"><div class="k">거래 건수</div><div class="v">${c.tradeCount}건</div></div>
+        </div>
+
+        ${alertHtml}
+
+        <div class="detail-actions">
+          <div class="a primary" data-action="call">전화</div>
+          <div class="a" data-action="sms">문자</div>
+          <div class="a" data-action="memo">메모</div>
+        </div>
+        ${c.memo ? `<div style="margin-top:12px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:11px;font-size:12px;color:var(--text-mute);"><b style="color:var(--text);font-weight:600;">관리메모</b> · ${escapeHtml(c.memo)}</div>` : ''}
+
+        <div class="crm-section">
+          <div class="crm-title">회수 액션 관리</div>
+          ${canCrm ? `
+          <div class="crm-form">
+            <label class="crm-label" for="crm-memo">조치내용</label>
+            <textarea id="crm-memo" class="crm-input crm-textarea" rows="3" placeholder="통화 요약, 입금 약속 등"></textarea>
+            <label class="crm-label" for="crm-manager">담당자</label>
+            <input type="text" id="crm-manager" class="crm-input" placeholder="이름" autocomplete="name" />
+            <label class="crm-label" for="crm-next">다음 연락 예정일</label>
+            <input type="date" id="crm-next" class="crm-input" />
+            <button type="button" class="crm-save" id="crm-save">저장</button>
+          </div>` : `<div class="crm-offline">API 미연결·데모 모드에서는 ACTION_LOG 시트에 저장되지 않습니다.</div>`}
+          <div class="crm-log-title">최근 액션</div>
+          <div class="crm-log-list">${actionListHtml}</div>
+        </div>
+      </div>`;
+
+    slot.querySelectorAll('[data-action]').forEach(el => {
+      el.addEventListener('click', () => {
+        const a = el.dataset.action;
+        if (a === 'call') alert(`📞 ${c.name}에 전화 연결 (mock)`);
+        if (a === 'sms')  alert(`💬 ${c.name}에 문자 발송 (mock)`);
+        if (a === 'memo') alert(`📝 ${c.name} 관리메모 추가 (mock)`);
+      });
+    });
+
+    const saveBtn = slot.querySelector('#crm-save');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        const memoEl = slot.querySelector('#crm-memo');
+        const mgrEl = slot.querySelector('#crm-manager');
+        const nextEl = slot.querySelector('#crm-next');
+        const memo = memoEl && memoEl.value ? memoEl.value.trim() : '';
+        const manager = mgrEl && mgrEl.value ? mgrEl.value.trim() : '';
+        const nextDate = nextEl && nextEl.value ? nextEl.value.trim() : '';
+        if (!memo) {
+          showAppToast('조치내용을 입력해 주세요.');
+          return;
+        }
+        saveBtn.disabled = true;
+        try {
+          await apiPostSaveAction({
+            customer: c.name,
+            memo,
+            manager,
+            nextDate
+          });
+          showAppToast('저장되었습니다.');
+          if (memoEl) memoEl.value = '';
+          if (mgrEl) mgrEl.value = '';
+          if (nextEl) nextEl.value = '';
+          state.detailActions = await fetchCustomerActions(c.name);
+          renderDetailView();
+        } catch (err) {
+          showAppToast(err.message || '저장 실패');
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+    }
+
+    // 거래내역 (요약·월계·합계 행 제외 · 최신순 · 최대 5건)
+    const txs = detail.transactions || [];
+    const filtered = txs.filter(raw => !isAggregateTxRow(raw));
+    const sorted = [...filtered].sort((a, b) => txSortKeyMs(b) - txSortKeyMs(a));
+    const top5 = sorted.slice(0, 5);
+    if (top5.length === 0) {
+      txSlot.innerHTML = emptyState({
+        title: '최근 거래내역 없음',
+        sub: '해당 거래처의 최근 거래가 없습니다. (요약·합계 행은 표시하지 않습니다.)'
+      });
+      txCount.textContent = '';
+      return;
+    }
+    txCount.textContent = `최근 ${top5.length}건`;
+    txSlot.innerHTML = `<div class="tx-list">${top5.map(raw => {
+      const t = {
+        date: raw.date || raw.txDate || '-',
+        type: raw.type || raw.txType || '판매',
+        content: raw.content || raw.desc || '',
+        amount: Number(raw.amount || 0),
+        balance: Number(raw.balance || 0)
+      };
+      const isCol = t.type === '수금';
+      const typeLabel = isCol ? '수금' : '판매';
+      return `
+        <div class="tx-row ${isCol ? 'col' : 'sale'}">
+          <div class="ico">${isCol ? '수' : '판'}</div>
+          <div>
+            <div class="ti">${t.content || typeLabel}</div>
+            <div class="dt"><b>[${typeLabel}]</b> ${t.date}</div>
+          </div>
+          <div>
+            <div class="amt">${isCol ? '-' : '+'}${shortWon(Math.abs(t.amount))}</div>
+            <div class="bal">잔액 ${shortWon(t.balance)}</div>
+          </div>
+        </div>`;
+    }).join('')}</div>`;
+  }
+
+  // ─── [13] 거래처 선택 → 상세 화면 (탭 없음) ─────────────
+  function showDetailScreen() {
+    state.detailOpen = true;
+    state.currentView = 'detail';
+    document.body.classList.add('detail-open');
+    document.querySelectorAll('.view').forEach(v => {
+      v.classList.toggle('active', v.dataset.view === 'detail');
+    });
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === state.tabBeforeDetail);
+    });
+    document.body.classList.remove('dashboard-mode');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  function closeDetailScreen() {
+    state.detailOpen = false;
+    document.body.classList.remove('detail-open');
+    const backTab = state.tabBeforeDetail || 'risk';
+    historySync = false;
+    try {
+      const payload = { view: backTab };
+      if (backTab === 'risk') payload.riskFilter = state.riskFilter;
+      history.replaceState(payload, '', '#' + backTab);
+      switchView(backTab, { fromHistory: true });
+    } finally {
+      historySync = true;
+    }
+  }
+
+  async function selectCustomer(name, opts) {
+    opts = opts || {};
+    const skipHistoryPush = opts.skipHistoryPush === true;
+    state.selected = name;
+    state.detail = null;
+    state.detailActions = [];
+    if (!skipHistoryPush && ['dashboard', 'risk', 'search'].includes(state.currentView)) {
+      state.tabBeforeDetail = state.currentView;
+    }
+    if (!skipHistoryPush && historySync) {
+      const tb = state.tabBeforeDetail || 'risk';
+      try {
+        history.pushState(
+          { view: 'detail', customer: name, tabBefore: tb },
+          '',
+          buildHashFromState({ view: 'detail', customer: name, tabBefore: tb })
+        );
+      } catch (err) {}
+    }
+    showDetailScreen();
+    renderDetailView(); // 스켈레톤 표시
+    const detail = await loadCustomerDetail(name);
+    state.detail = detail.data;
+    state.dataSource = aggregateSources([state.dataSource, detail.source]);
+    state.detailActions = await fetchCustomerActions(name);
+    setDataSourceUI();
+    renderDetailView();
+  }
+
+  // ─── [14] 뷰 라우터 (하단 탭: 대시보드 / 위험거래처 / 검색) ──
+  function switchView(name, opts) {
+    opts = opts || {};
+    const skipHistoryMutation =
+      opts.fromHistory === true ||
+      opts.skipHistory === true;
+    if (name === 'detail' || name === 'report-print') return;
+    const prev = state.currentView;
+
+    document.body.classList.remove('report-view-open');
+
+    state.detailOpen = false;
+    document.body.classList.remove('detail-open');
+    state.currentView = name;
+    document.querySelectorAll('.view').forEach(v => {
+      v.classList.toggle('active', v.dataset.view === name);
+    });
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === name);
+    });
+    document.body.classList.toggle('dashboard-mode', name === 'dashboard');
+
+    if (!skipHistoryMutation && historySync) {
+      const payload = { view: name };
+      if (name === 'risk') payload.riskFilter = state.riskFilter;
+      try {
+        if (prev === 'detail') {
+          history.replaceState(payload, '', '#' + name);
+        } else if (prev !== name) {
+          history.pushState(payload, '', '#' + name);
+        }
+      } catch (err) {}
+    }
+
+    if (name === 'risk') renderRiskView();
+    if (name === 'search') renderSearchResults(searchInput.value);
+    if (name === 'dashboard') renderDashboardView();
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      const name = t.dataset.tab;
+      if (name === 'risk') state.riskFilter = 'manage';
+      switchView(name);
+    });
+  });
+
+  document.getElementById('btn-detail-back').addEventListener('click', () => {
+    if (history.length > 1) history.back();
+    else closeDetailScreen();
+  });
+
+  window.addEventListener('popstate', (ev) => {
+    const st = ev.state;
+    historySync = false;
+    try {
+      if (st && st.view === 'report-print') {
+        const slot = document.getElementById('report-print-slot');
+        if (slot && slot.innerHTML.trim()) {
+          enterReportPrintView();
+        } else {
+          history.replaceState({ view: 'dashboard' }, '', '#dashboard');
+          switchView('dashboard', { fromHistory: true });
+        }
+        return;
+      }
+      document.body.classList.remove('report-view-open');
+      if (st && st.view === 'detail' && st.customer) {
+        state.tabBeforeDetail = st.tabBefore || 'risk';
+        void selectCustomer(st.customer, { skipHistoryPush: true });
+        return;
+      }
+      state.detailOpen = false;
+      document.body.classList.remove('detail-open');
+      if (!st || !st.view) {
+        switchView('dashboard', { fromHistory: true });
+        return;
+      }
+      if (st.riskFilter != null && st.view === 'risk') state.riskFilter = st.riskFilter;
+      switchView(st.view, { fromHistory: true });
+    } finally {
+      historySync = true;
+    }
+  });
+
+  (function initKpiNavDelegation() {
+    const el = document.getElementById('kpi-slot');
+    if (!el || el.dataset.navDelegation) return;
+    el.dataset.navDelegation = '1';
+    const go = (card) => {
+      const nav = card.getAttribute('data-kpi-nav');
+      if (nav === 'recovery') state.riskFilter = 'recovery';
+      else if (nav === 'riskHigh') state.riskFilter = 'riskHigh';
+      else if (nav === 'over30') state.riskFilter = 'over30';
+      else if (nav === 'manage') state.riskFilter = 'manage';
+      else return;
+      renderRiskView();
+      switchView('risk');
+    };
+    el.addEventListener('click', (e) => {
+      const card = e.target.closest('.kpi[data-kpi-nav]');
+      if (!card || !el.contains(card)) return;
+      go(card);
+    });
+    el.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const card = e.target.closest('.kpi[data-kpi-nav]');
+      if (!card || !el.contains(card)) return;
+      e.preventDefault();
+      go(card);
+    });
+  })();
+
+  document.getElementById('btn-print-weekly').addEventListener('click', () => void openWeeklyReport());
+  document.getElementById('btn-print-risk').addEventListener('click', () => void openWeeklyReport());
+  document.getElementById('btn-print-detail').addEventListener('click', () => void openWeeklyReport());
+
+  document.getElementById('btn-report-close').addEventListener('click', () => {
+    if (history.length > 1) history.back();
+    else {
+      historySync = false;
+      try {
+        history.replaceState({ view: 'dashboard' }, '', '#dashboard');
+        switchView('dashboard', { fromHistory: true });
+      } finally {
+        historySync = true;
+      }
+    }
+  });
+  document.getElementById('btn-report-pdf').addEventListener('click', () => {
+    try {
+      window.print();
+    } catch (e) {}
+  });
+
+  // ─── [15] 새로고침 ─────────────────────────────────────
+  const refreshBtn = document.getElementById('btn-refresh');
+
+  function setLoading(on) {
+    state.loading = on;
+    document.body.classList.toggle('loading', on);
+    refreshBtn.classList.toggle('refreshing', on);
+    refreshBtn.disabled = on;
+  }
+
+  function aggregateSources(sources) {
+    const uniq = [...new Set(sources)];
+    if (uniq.length === 1) return uniq[0];
+    if (uniq.includes('live')) return 'partial';
+    if (uniq.includes('partial')) return 'partial';
+    if (uniq.includes('error')) return 'error';
+    if (uniq.includes('fallback')) return 'fallback';
+    return 'mock';
+  }
+
+  async function loadAll() {
+    // 1) customers 먼저 → 2) dashboard는 customers를 힌트로 fallback 계산
+    const cRes = await loadCustomerList();
+    state.customers = cRes.data;
+
+    const [dRes, detailRes] = await Promise.all([
+      loadDashboardData(state.customers),
+      state.selected ? loadCustomerDetail(state.selected) : Promise.resolve(null)
+    ]);
+    state.dashboard = dRes.data;
+
+    const sources = [cRes.source, dRes.source];
+    if (detailRes) {
+      state.detail = detailRes.data;
+      sources.push(detailRes.source);
+    }
+    state.dataSource = aggregateSources(sources);
+    state.lastRefresh = new Date();
+  }
+
+  async function refreshDashboard() {
+    if (state.loading) return;
+    setLoading(true);
+    state.lastError = null;
+    const started = Date.now();
+
+    document.getElementById('hero-slot').innerHTML = skeletonHero();
+    document.getElementById('kpi-slot').innerHTML = skeletonKPI();
+    document.getElementById('risk-slot').innerHTML = skeletonList(6);
+    if (state.selected) {
+      document.getElementById('detail-slot').innerHTML = skeletonDetail();
+      document.getElementById('tx-slot').innerHTML = skeletonTx(4);
+    }
+
+    try {
+      await loadAll();
+
+      const elapsed = Date.now() - started;
+      if (elapsed < CONFIG.REFRESH_MIN_MS) await sleep(CONFIG.REFRESH_MIN_MS - elapsed);
+
+      setDataSourceUI();
+      renderDashboardView();
+      renderRiskView();
+      renderSearchResults(searchInput.value);
+      if (state.selected && state.detailOpen && hasApi() && !CONFIG.USE_MOCK) {
+        try {
+          state.detailActions = await fetchCustomerActions(state.selected);
+        } catch (e2) {
+          state.detailActions = [];
+        }
+      }
+      renderDetailView();
+    } catch (e) {
+      console.error('refresh failed:', e);
+      if (isMockMode()) {
+        state.customers = MOCK_CUSTOMERS.map(normalizeCustomer);
+        state.dashboard = computeDashboardFromCustomers(state.customers);
+        state.dataSource = 'mock';
+      } else if (useMockFallback()) {
+        state.customers = MOCK_CUSTOMERS.map(normalizeCustomer);
+        state.dashboard = computeDashboardFromCustomers(state.customers);
+        state.dataSource = 'fallback';
+      } else {
+        state.customers = [];
+        state.dashboard = computeDashboardFromCustomers([]);
+        state.dataSource = 'error';
+      }
+      state.lastError = e?.message || String(e);
+      state.lastRefresh = new Date();
+      setDataSourceUI();
+      renderDashboardView();
+      renderRiskView();
+      renderSearchResults(searchInput.value);
+      renderDetailView();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  refreshBtn.addEventListener('click', refreshDashboard);
+
+  // ─── [16] 키보드 / 네트워크 / 배너 ─────────────────────
+  function handleKeyboard() {
+    const focusInputs = () => document.activeElement &&
+      ['INPUT','TEXTAREA'].includes(document.activeElement.tagName);
+
+    if (window.visualViewport) {
+      const vv = window.visualViewport;
+      const onResize = () => {
+        const ratio = vv.height / window.innerHeight;
+        document.body.classList.toggle('kbd-open', ratio < 0.78 && focusInputs());
+      };
+      vv.addEventListener('resize', onResize);
+      vv.addEventListener('scroll', onResize);
+    }
+    // 폴백: focus/blur 만으로도 안전 처리
+    document.addEventListener('focusin', e => {
+      if (['INPUT','TEXTAREA'].includes(e.target.tagName)) {
+        document.body.classList.add('kbd-open');
+      }
+    });
+    document.addEventListener('focusout', () => {
+      setTimeout(() => {
+        if (!focusInputs()) document.body.classList.remove('kbd-open');
+      }, 80);
+    });
+  }
+  handleKeyboard();
+
+  // 배너 닫기
+  document.querySelectorAll('[data-banner-dismiss]').forEach(el => {
+    el.addEventListener('click', () => document.body.classList.add('banner-dismissed'));
+  });
+
+  // 네트워크 복귀 시 자동 새로고침 (API 모드일 때만)
+  window.addEventListener('online', () => {
+    if (hasApi() && !state.loading) refreshDashboard();
+  });
+
+  // ─── [17] PWA: Service Worker 등록 ─────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(err => {
+        console.warn('SW 등록 실패:', err);
+      });
+    });
+  }
+
+  window.APP_VERSION = APP_VERSION;
+  window.DATA_VERSION = DATA_VERSION;
+
+  /** 콘솔에서 캐시·저장소 초기화: await resetCashflowAppCache() */
+  window.resetCashflowAppCache = async function resetCashflowAppCache() {
+    try {
+      const ks = Object.keys(localStorage);
+      for (let i = 0; i < ks.length; i++) {
+        const k = ks[i];
+        if (/cashflow/i.test(k)) localStorage.removeItem(k);
+      }
+      ['customers', 'dashboard', 'cache', 'lastData', 'mock'].forEach(k => {
+        try { localStorage.removeItem(k); } catch (e2) {}
+      });
+    } catch (e) {}
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    } catch (e) {}
+    try {
+      const names = await caches.keys();
+      await Promise.all(names.map(n => caches.delete(n)));
+    } catch (e) {}
+    location.reload();
+  };
+
+  // ─── [18] 초기 부팅 ────────────────────────────────────
+  (async function boot() {
+    document.getElementById('hero-slot').innerHTML = skeletonHero();
+    document.getElementById('kpi-slot').innerHTML = skeletonKPI();
+    document.getElementById('risk-slot').innerHTML = skeletonList(6);
+
+    setLoading(true);
+    try {
+      await loadAll();
+      let route = parseRouteFromLocation();
+      if (route.view === 'report-print') {
+        route = { view: 'dashboard' };
+      }
+      const initialState = normalizeInitialHistoryState(route);
+      history.replaceState(initialState, '', buildHashFromState(initialState));
+
+      historySync = false;
+      try {
+        if (route.view === 'detail' && route.customer) {
+          state.tabBeforeDetail = route.tabBefore || 'risk';
+          await selectCustomer(route.customer, { skipHistoryPush: true });
+        } else {
+          if (route.view === 'risk' && route.riskFilter != null) state.riskFilter = route.riskFilter;
+          switchView(route.view, { fromHistory: true });
+        }
+      } finally {
+        historySync = true;
+      }
+
+      setDataSourceUI();
+      renderDashboardView();
+      renderRiskView();
+      renderSearchResults('');
+      renderDetailView();
+    } catch (e) {
+      console.error('boot failed:', e);
+      if (isMockMode()) {
+        state.customers = MOCK_CUSTOMERS.map(normalizeCustomer);
+        state.dashboard = computeDashboardFromCustomers(state.customers);
+        state.dataSource = 'mock';
+      } else if (useMockFallback()) {
+        state.customers = MOCK_CUSTOMERS.map(normalizeCustomer);
+        state.dashboard = computeDashboardFromCustomers(state.customers);
+        state.dataSource = 'fallback';
+      } else {
+        state.customers = [];
+        state.dashboard = computeDashboardFromCustomers([]);
+        state.dataSource = 'error';
+      }
+      state.lastError = e?.message || String(e);
+      state.lastRefresh = new Date();
+      history.replaceState({ view: 'dashboard' }, '', '#dashboard');
+      historySync = false;
+      try {
+        switchView('dashboard', { fromHistory: true });
+      } finally {
+        historySync = true;
+      }
+      setDataSourceUI();
+      renderDashboardView();
+      renderRiskView();
+      renderSearchResults('');
+      renderDetailView();
+    } finally {
+      setLoading(false);
+    }
+  })();
+  </script>
+</body>
+</html>
+
