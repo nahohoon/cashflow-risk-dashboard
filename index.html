@@ -1620,7 +1620,7 @@
       </div>
     </section>
 
-    <div class="footer">© 지점 미수 및 현금흐름 위험관리 시스템 · v0.2</div>
+    <div class="footer">© 지점 미수 및 현금흐름 위험관리 시스템 · <span id="footer-ver" style="font-family:monospace;opacity:0.6;"></span></div>
   </div>
 
   <!-- ───── Bottom Tabbar ───── -->
@@ -1655,7 +1655,7 @@
   </nav>
 
   <script>
-  const APP_VERSION = 'receivable-list-debug-20260520-3';
+  const APP_VERSION = 'receivable-list-debug-20260520-5';
   console.log('[APP_VERSION]', APP_VERSION);
   const DATA_VERSION = '20260513-erp-v2';
   const LS_VERSION_KEY = 'cashflow-risk.dataVersion';
@@ -3834,6 +3834,12 @@
 
   window.APP_VERSION = APP_VERSION;
   window.DATA_VERSION = DATA_VERSION;
+
+  // footer에 APP_VERSION 표시 (배포 버전 확인용)
+  (function() {
+    const el = document.getElementById('footer-ver');
+    if (el) el.textContent = 'v' + APP_VERSION;
+  })();
 
   /** 콘솔에서 캐시·저장소 초기화: await resetCashflowAppCache() */
   window.resetCashflowAppCache = async function resetCashflowAppCache() {

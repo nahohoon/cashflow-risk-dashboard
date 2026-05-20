@@ -8,7 +8,7 @@
  *   - 기타 정적 자원 (폰트 등): stale-while-revalidate
  * ════════════════════════════════════════════════════════ */
 
-const VERSION = 'cashflow-risk-v20260513-v3';
+const VERSION = 'cashflow-risk-v20260520-5';
 const CACHE_SHELL = `cashflow-risk-shell-${VERSION}`;
 const CACHE_RUNTIME = `cashflow-risk-runtime-${VERSION}`;
 
@@ -29,16 +29,17 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys => Promise.all(
-      keys.filter(k => {
-        if (k === CACHE_SHELL || k === CACHE_RUNTIME) return false;
-        return (
-          k.startsWith('cashflow-risk-') ||
-          k.startsWith('cashflow-shell-') ||
-          k.startsWith('cashflow-runtime-') ||
-          k.startsWith('cashflow-')
-        );
-      }).map(k => caches.delete(k))
-    )).then(() => self.clients.claim())
+      // 현재 버전이 아닌 캐시는 전부 삭제 (버전명 무관하게)
+      keys
+        .filter(k => k !== CACHE_SHELL && k !== CACHE_RUNTIME)
+        .map(k => {
+          console.log('[SW] deleting old cache:', k);
+          return caches.delete(k);
+        })
+    )).then(() => {
+      console.log('[SW] activated version:', VERSION);
+      return self.clients.claim();
+    })
   );
 });
 
@@ -48,7 +49,7 @@ self.addEventListener('fetch', event => {
 
   const url = new URL(req.url);
 
-  // ─ API 호출: Apps Script 도메인은 항상 네트워크 우선, 캐시 금지
+  // ─ API 호출: Apps Script 도메인은 항상 네트워크, 캐시 금지
   if (url.hostname.endsWith('script.google.com') ||
       url.hostname.endsWith('googleusercontent.com')) {
     event.respondWith(
@@ -60,25 +61,32 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // ─ 동일 출처: HTML 문서(navigation)는 network-first, 그 외 cache-first
+  // ─ 동일 출처: HTML 문서(navigation) / index.html → network-first
   if (url.origin === self.location.origin) {
     const isNavigation =
       req.mode === 'navigate' ||
-      (req.destination && req.destination === 'document');
+      req.destination === 'document' ||
+      url.pathname.endsWith('/') ||
+      url.pathname.endsWith('index.html');
 
     if (isNavigation) {
       event.respondWith(
-        fetch(req).then(res => {
+        fetch(req, { cache: 'no-store' }).then(res => {
+          // 성공하면 최신 버전으로 캐시 갱신
           if (res.ok && res.status === 200) {
             const clone = res.clone();
             caches.open(CACHE_SHELL).then(c => c.put(req, clone));
           }
           return res;
-        }).catch(() => caches.match('./index.html'))
+        }).catch(() => {
+          // 오프라인 fallback
+          return caches.match('./index.html');
+        })
       );
       return;
     }
 
+    // 그 외 동일 출처 자산: cache-first
     event.respondWith(
       caches.match(req).then(cached => {
         if (cached) return cached;
