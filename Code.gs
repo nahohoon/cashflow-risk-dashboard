@@ -2313,7 +2313,11 @@ function doGet(e) {
       return jsonResponse_(computeDashboardPayload_());
     }
     if (action === 'customers') {
-      return jsonResponse_(apiGetCustomersList_());
+      var customerList = apiGetCustomersList_();
+      return jsonResponse_(customerList);
+    }
+    if (action === 'debugSheet') {
+      return jsonResponse_(apiDebugSheetInfo_());
     }
     if (action === 'detail') {
       var rawName = p.name;
@@ -2562,6 +2566,80 @@ function apiGetCustomersList_() {
   Logger.log('[apiGetCustomersList] totalRows=' + totalRows + ' skippedNoBalance=' + skippedNoBalance + ' returned=' + out.length);
   try { console.log('[apiGetCustomersList] totalRows=' + totalRows + ' skippedNoBalance=' + skippedNoBalance + ' returned=' + out.length); } catch(e) {}
   return out;
+}
+
+/**
+ * 진단용: 거래처요약 시트의 원시 통계 반환.
+ * ?action=debugSheet 로 호출. 브라우저에서 직접 API URL에 붙여 확인 가능.
+ */
+function apiDebugSheetInfo_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const summary = ss.getSheetByName('거래처요약');
+  if (!summary) return { error: '거래처요약 시트 없음' };
+
+  const values = summary.getDataRange().getValues();
+  if (values.length < 2) return { error: '데이터 없음', sheetRows: values.length };
+
+  const header = values[0].map(function(h) { return String(h).trim(); });
+  const iName = findColumnIndex_(header, ['거래처명']);
+  const iBal  = findColumnIndex_(header, ['현재잔액']);
+  const iLast = findColumnIndex_(header, ['최근수금일']);
+  const iRisk = findColumnIndex_(header, ['위험등급']);
+
+  var totalDataRows = 0;
+  var balancePositive = 0;
+  var balanceZero = 0;
+  var balanceNegative = 0;
+  var noName = 0;
+  var sample = [];
+
+  for (var r = 1; r < values.length; r++) {
+    var row = values[r];
+    var nm = iName === -1 ? '' : String(row[iName] == null ? '' : row[iName]).trim();
+    if (!nm) { noName++; continue; }
+    totalDataRows++;
+    var bal = iBal === -1 ? 0 : toNumber_(row[iBal]);
+    if (bal > 0) {
+      balancePositive++;
+      if (sample.length < 20) {
+        var lpRaw = iLast === -1 ? '' : row[iLast];
+        var lpStr = '';
+        if (lpRaw != null) {
+          if (Object.prototype.toString.call(lpRaw) === '[object Date]' && !isNaN(lpRaw.getTime())) {
+            lpStr = lpRaw.getFullYear() + '-' + String(lpRaw.getMonth()+1).padStart(2,'0') + '-' + String(lpRaw.getDate()).padStart(2,'0');
+          } else {
+            lpStr = String(lpRaw).trim();
+          }
+        }
+        sample.push({
+          name: nm,
+          balance: bal,
+          lastPayDate: lpStr,
+          risk: iRisk === -1 ? '' : String(row[iRisk]).trim()
+        });
+      }
+    } else if (bal === 0) {
+      balanceZero++;
+    } else {
+      balanceNegative++;
+    }
+  }
+
+  Logger.log('[debugSheet] totalDataRows=' + totalDataRows + ' balancePositive=' + balancePositive + ' balanceZero=' + balanceZero + ' balanceNegative=' + balanceNegative);
+
+  return {
+    header: header,
+    sheetTotalRows: values.length - 1,
+    noName: noName,
+    totalDataRows: totalDataRows,
+    balancePositive: balancePositive,
+    balanceZero: balanceZero,
+    balanceNegative: balanceNegative,
+    iNameCol: iName,
+    iBalCol: iBal,
+    iLastPayCol: iLast,
+    samplePositive: sample
+  };
 }
 
 function apiGetCustomerDetail_(customerName) {

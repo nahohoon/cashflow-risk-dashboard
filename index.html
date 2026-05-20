@@ -2079,11 +2079,14 @@
     if (hasApi() && !CONFIG.USE_MOCK) {
       try {
         const r = await fetchCustomerList();
-        console.log('[api customers] length=', Array.isArray(r) ? r.length : '(not array)', r && r[0] ? Object.keys(r[0]) : []);
         if (Array.isArray(r)) {
+          console.log('[api customers] length=', r.length);
+          console.log('[api customers] first row keys=', r[0] ? Object.keys(r[0]) : []);
+          console.log('[api customers] sample balances=', r.slice(0,5).map(c => ({name: c.name, balance: c.balance, lastPayDate: c.lastPayDate})));
           const list = r.map(normalizeCustomer);
           return { data: list, source: 'live' };
         }
+        console.warn('[api customers] response is not array:', typeof r, r);
       } catch (e) {
         state.lastError = e.message;
         if (useMockFallback()) {
